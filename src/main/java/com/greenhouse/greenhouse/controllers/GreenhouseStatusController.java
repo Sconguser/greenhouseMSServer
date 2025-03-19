@@ -29,7 +29,7 @@ public class GreenhouseStatusController {
                                                @RequestBody GreenhouseStatusRequest greenhouseStatus)
     {
         greenhouseStatusService.processGreenhouseStatus(greenhouseId, greenhouseStatus);
-        return ResponseEntity.ok("ok");
+        return ResponseEntity.ok("Status updated and correct");
     }
 
     @PatchMapping("/setStatus/{greenhouseId}")

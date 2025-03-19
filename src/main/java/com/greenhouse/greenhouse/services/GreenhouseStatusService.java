@@ -1,7 +1,7 @@
 package com.greenhouse.greenhouse.services;
 
+import com.greenhouse.greenhouse.exceptions.GreenhouseOffException;
 import com.greenhouse.greenhouse.exceptions.GreenhouseStatusNotFoundException;
-import com.greenhouse.greenhouse.exceptions.PlantRequirementsNotMetException;
 import com.greenhouse.greenhouse.mappers.GreenhouseStatusMapper;
 import com.greenhouse.greenhouse.models.Greenhouse;
 import com.greenhouse.greenhouse.models.GreenhouseStatus;
@@ -97,12 +97,16 @@ public class GreenhouseStatusService {
         Greenhouse greenhouse = greenhouseManager.getGreenhouseEntity(greenhouseId);
         GreenhouseStatus newStatus = updateAndReturnGreenhouseStatus(greenhouse.getStatus()
                 .getId(), greenhouseStatusRequest);
-        try {
-            greenhouseManager.checkPlantRequirements(greenhouse, newStatus);
-        } catch (PlantRequirementsNotMetException e) {
+        if (Status.OFF.equals(newStatus.getStatus())) {
+            throw new GreenhouseOffException("Greenhouse is off!");
+//            notificationService.sendAlert(new GreenhouseOffException());
+        }
+        greenhouseManager.checkPlantRequirements(greenhouse, newStatus);
+//        try {
+//        } catch (PlantRequirementsNotMetException e) {
             ///TODO: implement
 //            notificationService.sendAlert(e);
-        }
+//        }
 
     }
 }
