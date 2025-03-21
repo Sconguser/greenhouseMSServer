@@ -30,15 +30,9 @@ public class GreenhouseStatusService {
     }
 
     @Deprecated
-    private static GreenhouseStatusResponse getGreenhouseStatusResponse (GreenhouseStatus greenhouseStatus) {
-        return new GreenhouseStatusResponse(greenhouseStatus.getTemperature(), greenhouseStatus.getHumidity(),
-                greenhouseStatus.getStatus());
-    }
-
-    @Deprecated
     public GreenhouseStatusResponse getGreenhouseStatus (Long id) {
         return greenhouseStatusRepository.findById(id)
-                .map(GreenhouseStatusService::getGreenhouseStatusResponse)
+                .map(greenhouseStatusMapper::toResponse)
                 .orElseThrow(() -> new GreenhouseStatusNotFoundException("Greenhouse status not found in database"));
     }
 
@@ -82,10 +76,6 @@ public class GreenhouseStatusService {
         GreenhouseStatus greenhouseStatus = fetchGreenhouseStatus(id);
         greenhouseStatus.setStatus(status);
         greenhouseStatusRepository.save(greenhouseStatus);
-    }
-
-    public void statusCheck (Long greenhouseId, GreenhouseStatusRequest greenhouseStatusRequest) {
-        processGreenhouseStatus(greenhouseId, greenhouseStatusRequest);
     }
 
     private GreenhouseStatus fetchGreenhouseStatus (Long id) {
