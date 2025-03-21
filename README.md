@@ -8,3 +8,4 @@ Aby uruchomić projekt wymagana jest baza postgresql o nazwie greenhouse
 Wymagane zmienne środowiskowe to:
 JWT_SECRET_KEY - klucz do generowania tokenów JWT
 JWT_EXPIRATION_TIME - czas ważności tokenów JWT w milisekundach
+FIREBASE_SETTINGS - nazwa pliku .json z konfiguracją FCM

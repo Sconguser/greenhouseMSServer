@@ -1,7 +1,9 @@
 package com.greenhouse.greenhouse.services;
 
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.greenhouse.greenhouse.exceptions.GreenhouseOffException;
 import com.greenhouse.greenhouse.exceptions.GreenhouseStatusNotFoundException;
+import com.greenhouse.greenhouse.exceptions.PlantRequirementsNotMetException;
 import com.greenhouse.greenhouse.mappers.GreenhouseStatusMapper;
 import com.greenhouse.greenhouse.models.Greenhouse;
 import com.greenhouse.greenhouse.models.GreenhouseStatus;
@@ -10,6 +12,8 @@ import com.greenhouse.greenhouse.repositories.GreenhouseStatusRepository;
 import com.greenhouse.greenhouse.requests.GreenhouseStatusRequest;
 import com.greenhouse.greenhouse.responses.GreenhouseStatusResponse;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class GreenhouseStatusService {
@@ -83,20 +87,31 @@ public class GreenhouseStatusService {
                 .orElseThrow(() -> new GreenhouseStatusNotFoundException("Greenhouse status not found in database"));
     }
 
-    public void processGreenhouseStatus (Long greenhouseId, GreenhouseStatusRequest greenhouseStatusRequest) {
+    public void processGreenhouseStatus (Long greenhouseId, GreenhouseStatusRequest greenhouseStatusRequest)
+    {
         Greenhouse greenhouse = greenhouseManager.getGreenhouseEntity(greenhouseId);
         GreenhouseStatus newStatus = updateAndReturnGreenhouseStatus(greenhouse.getStatus()
                 .getId(), greenhouseStatusRequest);
         if (Status.OFF.equals(newStatus.getStatus())) {
-            throw new GreenhouseOffException("Greenhouse is off!");
-//            notificationService.sendAlert(new GreenhouseOffException());
+            try {
+                notificationService.sendNotification("Something wrong with greenhouse",
+                        new GreenhouseOffException("Greenhouse is off").getMessage(), List.of(""));
+            } catch (FirebaseMessagingException e) {
+                /// TODO implement custom exception
+                throw new RuntimeException("Firebase messaging expception");
+            }
         }
-        greenhouseManager.checkPlantRequirements(greenhouse, newStatus);
-//        try {
-//        } catch (PlantRequirementsNotMetException e) {
-            ///TODO: implement
-//            notificationService.sendAlert(e);
-//        }
+        try {
+            greenhouseManager.checkPlantRequirements(greenhouse, newStatus);
+        } catch (PlantRequirementsNotMetException e) {
+            try {
+
+                notificationService.sendNotification("Something wrong with greenhouse", e.getMessage(), List.of(""));
+            } catch (FirebaseMessagingException ex) {
+                throw new RuntimeException("Firebase messaging expception");
+
+            }
+        }
 
     }
 }
