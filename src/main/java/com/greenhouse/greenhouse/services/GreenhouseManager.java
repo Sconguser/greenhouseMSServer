@@ -17,8 +17,15 @@ public class GreenhouseManager {
     public void checkPlantRequirements (Greenhouse greenhouse, GreenhouseStatus greenhouseStatus) {
         double temperature = greenhouseStatus.getTemperature();
         double humidity = greenhouseStatus.getHumidity();
+        double soilHumidity = greenhouseStatus.getSoilHumidity();
         for (Plant plant : greenhouse.getPlants()) {
-            if (temperature > plant.getMaxTemperature() || temperature < plant.getMinTemperature() || humidity > plant.getMaxHumidity() || humidity < plant.getMinHumidity()) {
+            if (temperature > plant.getMaxTemperature() ||
+                    temperature < plant.getMinTemperature() ||
+                    humidity > plant.getMaxHumidity() ||
+                    humidity < plant.getMinHumidity() ||
+                    soilHumidity < plant.getMinSoilHumidity() ||
+                    soilHumidity > plant.getMaxSoilHumidity())
+            {
                 throw new PlantRequirementsNotMetException(composeErrorMessage(greenhouse, greenhouseStatus, plant));
             }
         }

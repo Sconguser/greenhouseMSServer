@@ -10,10 +10,12 @@ public class GreenhouseStatus {
 
     private double temperature;
     private double humidity;
+
+    private double soilHumidity;
+
     private Status status = Status.OFF;
     @OneToOne(mappedBy = "status", cascade = CascadeType.ALL, optional = false)
     private Greenhouse greenhouse;
-
     public GreenhouseStatus () {
     }
 
@@ -47,6 +49,14 @@ public class GreenhouseStatus {
 
     public void setHumidity (double humidity) {
         this.humidity = humidity;
+    }
+
+    public double getSoilHumidity () {
+        return soilHumidity;
+    }
+
+    public void setSoilHumidity (double soilHumidity) {
+        this.soilHumidity = soilHumidity;
     }
 
     public Long getId () {

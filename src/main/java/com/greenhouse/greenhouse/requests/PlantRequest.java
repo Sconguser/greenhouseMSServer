@@ -5,12 +5,15 @@ public class PlantRequest {
     private String description;
 
     private Integer minTemperature;
-
     private Integer maxTemperature;
 
     private Integer minHumidity;
-
     private Integer maxHumidity;
+
+    private Integer minSoilHumidity;
+
+    private Integer maxSoilHumidity;
+
     private String image_data_base64;
 
     public String getName() {
@@ -59,6 +62,22 @@ public class PlantRequest {
 
     public void setMaxHumidity (int maxHumidity) {
         this.maxHumidity = maxHumidity;
+    }
+
+    public Integer getMaxSoilHumidity () {
+        return maxSoilHumidity;
+    }
+
+    public void setMaxSoilHumidity (Integer maxSoilHumidity) {
+        this.maxSoilHumidity = maxSoilHumidity;
+    }
+
+    public Integer getMinSoilHumidity () {
+        return minSoilHumidity;
+    }
+
+    public void setMinSoilHumidity (Integer minSoilHumidity) {
+        this.minSoilHumidity = minSoilHumidity;
     }
 
     public String getImage_data() {

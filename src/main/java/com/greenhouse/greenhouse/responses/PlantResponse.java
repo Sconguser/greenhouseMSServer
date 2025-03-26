@@ -4,13 +4,16 @@ public class PlantResponse {
     private Long id;
     private String name;
     private String description;
-    private int minTemperature;
 
+    private int minTemperature;
     private int maxTemperature;
 
     private int minHumidity;
-
     private int maxHumidity;
+
+    private int minSoilHumidity;
+
+    private int maxSoilHumidity;
     private String image_data_base64;
 
     public PlantResponse (Long id, String name, String description, int minTemperature, int maxTemperature,
@@ -89,5 +92,21 @@ public class PlantResponse {
 
     public void setMinTemperature (int minTemperature) {
         this.minTemperature = minTemperature;
+    }
+
+    public int getMinSoilHumidity () {
+        return minSoilHumidity;
+    }
+
+    public void setMinSoilHumidity (int minSoilHumidity) {
+        this.minSoilHumidity = minSoilHumidity;
+    }
+
+    public int getMaxSoilHumidity () {
+        return maxSoilHumidity;
+    }
+
+    public void setMaxSoilHumidity (int maxSoilHumidity) {
+        this.maxSoilHumidity = maxSoilHumidity;
     }
 }

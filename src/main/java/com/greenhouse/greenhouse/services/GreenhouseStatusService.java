@@ -65,6 +65,10 @@ public class GreenhouseStatusService {
         if (requestTemperature != null) {
             greenhouseStatus.setTemperature(requestTemperature);
         }
+        Double requestSoilHumidity = greenhouseStatusRequest.getSoilHumidity();
+        if (requestSoilHumidity != null) {
+            greenhouseStatus.setSoilHumidity(requestSoilHumidity);
+        }
         Status requestStatus = greenhouseStatusRequest.getStatus();
         if (requestStatus != null) {
             greenhouseStatus.setStatus(requestStatus);

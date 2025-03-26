@@ -11,16 +11,19 @@ public class Plant {
     private Long id;
     private String name;
     private String description;
-    private int minTemperature;
 
+    private int minTemperature;
     private int maxTemperature;
 
     private int minHumidity;
     private int maxHumidity;
+
+    private int minSoilHumidity;
+    private int maxSoilHumidity;
+
     @Lob
     @Column
     private byte[] imageData;
-
     @ManyToMany(mappedBy = "plants")
     private List<Greenhouse> greenhouses;
 
@@ -49,6 +52,22 @@ public class Plant {
 
     public void setMinHumidity (int minHumidity) {
         this.minHumidity = minHumidity;
+    }
+
+    public int getMaxSoilHumidity () {
+        return maxSoilHumidity;
+    }
+
+    public void setMaxSoilHumidity (int maxSoilHumidity) {
+        this.maxSoilHumidity = maxSoilHumidity;
+    }
+
+    public int getMinSoilHumidity () {
+        return minSoilHumidity;
+    }
+
+    public void setMinSoilHumidity (int minSoilHumidity) {
+        this.minSoilHumidity = minSoilHumidity;
     }
 
     public String getName () {

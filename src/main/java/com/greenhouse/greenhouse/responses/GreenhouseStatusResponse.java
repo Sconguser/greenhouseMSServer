@@ -5,12 +5,13 @@ import com.greenhouse.greenhouse.models.Status;
 public class GreenhouseStatusResponse {
     private double temperature;
     private double humidity;
+    private double soilHumidity;
     private Status status;
 
-
-    public GreenhouseStatusResponse (double temperature, double humidity, Status status) {
+    public GreenhouseStatusResponse (double temperature, double humidity, double soilHumidity, Status status) {
         this.temperature = temperature;
         this.humidity = humidity;
+        this.soilHumidity = soilHumidity;
         this.status = status;
     }
 
@@ -28,6 +29,14 @@ public class GreenhouseStatusResponse {
 
     public void setHumidity (double humidity) {
         this.humidity = humidity;
+    }
+
+    public double getSoilHumidity () {
+        return soilHumidity;
+    }
+
+    public void setSoilHumidity (double soilHumidity) {
+        this.soilHumidity = soilHumidity;
     }
 
     public Status getStatus () {
