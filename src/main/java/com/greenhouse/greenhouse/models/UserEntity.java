@@ -17,6 +17,8 @@ public class UserEntity {
 
     @Column(nullable = false)
     private Role role;
+    @Column()
+    private String fcmToken;
 
     public Long getId () {
         return id;
@@ -48,6 +50,14 @@ public class UserEntity {
 
     public void setRole (Role role) {
         this.role = role;
+    }
+
+    public String getFcmToken () {
+        return fcmToken;
+    }
+
+    public void setFcmToken (String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 
 }

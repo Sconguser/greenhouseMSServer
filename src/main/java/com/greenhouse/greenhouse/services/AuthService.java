@@ -1,20 +1,14 @@
 package com.greenhouse.greenhouse.services;
 
-import com.greenhouse.greenhouse.configuration.JwtConfig;
 import com.greenhouse.greenhouse.models.Role;
 import com.greenhouse.greenhouse.models.UserEntity;
 import com.greenhouse.greenhouse.repositories.UserRepository;
 import com.greenhouse.greenhouse.responses.LoginResponse;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Date;
 
 @Service
 public class AuthService {
@@ -48,7 +42,7 @@ public class AuthService {
 
         // Return the token and user details
         return new LoginResponse(token, user.getUsername(), user.getRole()
-                .name());
+                .name(), user.getId());
     }
 
     public boolean register (String username, String password) {

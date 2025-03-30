@@ -42,8 +42,8 @@ public class AuthController {
                 userRequest.getPassword());
 
         response.setHeader("Authorization", "Bearer " + loginResponse.getToken());
-        UserResponse userResponse = new UserResponse(loginResponse.getUsername(),
-                Role.valueOf(loginResponse.getRole()));
+        UserResponse userResponse = new UserResponse(loginResponse.getUsername(), Role.valueOf(loginResponse.getRole()),
+                loginResponse.getId());
 
         return ResponseEntity.ok()
                 .body(userResponse);

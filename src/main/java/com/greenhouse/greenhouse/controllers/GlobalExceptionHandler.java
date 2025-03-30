@@ -1,9 +1,6 @@
 package com.greenhouse.greenhouse.controllers;
 
-import com.greenhouse.greenhouse.exceptions.ErrorMessage;
-import com.greenhouse.greenhouse.exceptions.GreenhouseStatusNotFoundException;
-import com.greenhouse.greenhouse.exceptions.PlantAlreadyExistsException;
-import com.greenhouse.greenhouse.exceptions.PlantNotFoundException;
+import com.greenhouse.greenhouse.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -21,6 +18,14 @@ public class GlobalExceptionHandler {
                                                                       WebRequest request)
     {
         return composeResponse(plantNotFoundException, request, HttpStatus.NOT_FOUND);
+    }
+
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    @ExceptionHandler(NotificationNotSentException.class)
+    public ResponseEntity<ErrorMessage> handleNotificationNotSentException (
+            NotificationNotSentException notificationNotSentException, WebRequest request)
+    {
+        return composeResponse(notificationNotSentException, request, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)
