@@ -13,8 +13,6 @@ public interface GreenhouseMapper {
 
     Greenhouse toEntity (GreenhouseRequest request);
 
-    @Mapping(source = "greenhouse.status", target = "greenhouseStatusResponse")
-    @Mapping(source = "greenhouse.plants", target = "plantResponses")
     GreenhouseResponse toResponse (Greenhouse greenhouse);
 
 

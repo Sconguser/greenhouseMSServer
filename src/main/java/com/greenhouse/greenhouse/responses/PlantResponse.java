@@ -14,10 +14,10 @@ public class PlantResponse {
     private int minSoilHumidity;
 
     private int maxSoilHumidity;
-    private String image_data_base64;
+    private byte[] imageData;
 
     public PlantResponse (Long id, String name, String description, int minTemperature, int maxTemperature,
-                          int minHumidity, int maxHumidity, String image_data_base64)
+                          int minHumidity, int maxHumidity, byte[] imageData)
     {
         this.id = id;
         this.name = name;
@@ -26,7 +26,7 @@ public class PlantResponse {
         this.maxTemperature = maxTemperature;
         this.minHumidity = minHumidity;
         this.maxHumidity = maxHumidity;
-        this.image_data_base64 = image_data_base64;
+        this.imageData = imageData;
     }
 
 
@@ -78,12 +78,12 @@ public class PlantResponse {
         this.maxHumidity = maxHumidity;
     }
 
-    public String getImage_data_base64() {
-        return image_data_base64;
+    public byte[] getImageData () {
+        return imageData;
     }
 
-    public void setImage_data_base64(String image_data_base64) {
-        this.image_data_base64 = image_data_base64;
+    public void setImageData (byte[] imageData) {
+        this.imageData = imageData;
     }
 
     public int getMinTemperature () {

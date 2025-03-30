@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/greenhouse")
@@ -21,8 +22,12 @@ public class GreenhouseController {
     }
 
     @GetMapping("/{id}")
-    public GreenhouseResponse getGreenhouse (@PathVariable Long id) {
-        return greenhouseService.getGreenhouse(id);
+    public ResponseEntity<GreenhouseResponse> getGreenhouse (@PathVariable Long id) {
+        return ResponseEntity.ok(greenhouseService.getGreenhouse(id));
+    }
+    @GetMapping("/")
+    public ResponseEntity<List<GreenhouseResponse>> getAllGreenhouses () {
+        return ResponseEntity.ok(greenhouseService.getAllGreenhouses());
     }
 
     @PostMapping("/add")

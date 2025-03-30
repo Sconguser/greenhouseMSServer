@@ -14,7 +14,7 @@ public class PlantRequest {
 
     private Integer maxSoilHumidity;
 
-    private String image_data_base64;
+    private byte[] imageData;
 
     public String getName() {
         return name;
@@ -80,11 +80,11 @@ public class PlantRequest {
         this.minSoilHumidity = minSoilHumidity;
     }
 
-    public String getImage_data() {
-        return image_data_base64;
+    public byte[] getImageData () {
+        return imageData;
     }
 
-    public void setImage_data(String image_data_base64) {
-        this.image_data_base64 = image_data_base64;
+    public void setImageData (byte[] imageData) {
+        this.imageData = imageData;
     }
 }

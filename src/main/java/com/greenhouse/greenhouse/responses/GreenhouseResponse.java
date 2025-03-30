@@ -4,23 +4,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GreenhouseResponse {
+
+
+    private final Long id;
     private final String name;
     private final String location;
     private final String ipAddress;
-    private final List<PlantResponse> plantResponses = new ArrayList<>();
-    private final GreenhouseStatusResponse greenhouseStatusResponse;
+    private final List<PlantResponse> plants = new ArrayList<>();
+    private final GreenhouseStatusResponse status;
 
     public GreenhouseResponse (String name, String location, String ipAddress,
-                               GreenhouseStatusResponse greenhouseStatusResponse, List<PlantResponse> plantResponses)
+                               GreenhouseStatusResponse status, List<PlantResponse> plants,
+                               Long id)
     {
         this.name = name;
         this.location = location;
         this.ipAddress = ipAddress;
-        this.greenhouseStatusResponse = greenhouseStatusResponse;
-        if (plantResponses == null) {
-            plantResponses = new ArrayList<>();
+        this.status = status;
+        this.id = id;
+        if (plants == null) {
+            plants = new ArrayList<>();
         }
-        this.plantResponses.addAll(plantResponses);
+        this.plants.addAll(plants);
     }
 
     public String getName () {
@@ -35,11 +40,15 @@ public class GreenhouseResponse {
         return ipAddress;
     }
 
-    public List<PlantResponse> getPlantResponses () {
-        return plantResponses;
+    public List<PlantResponse> getPlants () {
+        return plants;
     }
 
-    public GreenhouseStatusResponse getGreenhouseStatusResponse () {
-        return greenhouseStatusResponse;
+    public GreenhouseStatusResponse getStatus () {
+        return status;
+    }
+
+    public Long getId () {
+        return id;
     }
 }

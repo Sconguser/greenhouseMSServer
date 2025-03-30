@@ -2,6 +2,7 @@ package com.greenhouse.greenhouse.controllers;
 
 import com.greenhouse.greenhouse.exceptions.ErrorMessage;
 import com.greenhouse.greenhouse.exceptions.GreenhouseStatusNotFoundException;
+import com.greenhouse.greenhouse.exceptions.PlantAlreadyExistsException;
 import com.greenhouse.greenhouse.exceptions.PlantNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,14 @@ public class GlobalExceptionHandler {
                                                                       WebRequest request)
     {
         return composeResponse(plantNotFoundException, request, HttpStatus.NOT_FOUND);
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(PlantAlreadyExistsException.class)
+    public ResponseEntity<ErrorMessage> handlePlantAlreadyExistsException (
+            PlantAlreadyExistsException plantAlreadyExistsException, WebRequest request)
+    {
+        return composeResponse(plantAlreadyExistsException, request, HttpStatus.CONFLICT);
     }
 
     @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)

@@ -13,6 +13,7 @@ import com.greenhouse.greenhouse.responses.GreenhouseResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -34,6 +35,13 @@ public class GreenhouseService {
 
     public GreenhouseResponse getGreenhouse (Long id) {
         return greenhouseMapper.toResponse(getGreenhouseEntity(id));
+    }
+
+    public List<GreenhouseResponse> getAllGreenhouses () {
+        return greenhouseRepository.findAll()
+                .stream()
+                .map(greenhouseMapper::toResponse)
+                .toList();
     }
 
     public Greenhouse getGreenhouseEntity (Long id) {

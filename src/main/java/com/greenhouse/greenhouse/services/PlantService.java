@@ -1,5 +1,6 @@
 package com.greenhouse.greenhouse.services;
 
+import com.greenhouse.greenhouse.exceptions.PlantAlreadyExistsException;
 import com.greenhouse.greenhouse.exceptions.PlantNotFoundException;
 import com.greenhouse.greenhouse.mappers.PlantMapper;
 import com.greenhouse.greenhouse.models.Plant;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,11 +40,16 @@ public class PlantService {
     }
 
     public void addPlant (PlantRequest plantRequest) {
+        Optional<Plant> plantFromDatabase = plantRepository.findByName(plantRequest.getName());
+        if(plantFromDatabase.isPresent()){
+            throw new PlantAlreadyExistsException("Plant with this name already exists");
+        }
         Plant plant = plantMapper.toEntity(plantRequest);
 //        if (plantRequest.getImage_data() != null) {
 //            plant.setImageData(Base64.getDecoder()
 //                    .decode(plantRequest.getImage_data()));
 //        }
+
         plantRepository.save(plant);
     }
 
@@ -72,9 +79,9 @@ public class PlantService {
         if (plantRequest.getMaxHumidity() != null) {
             plant.setMinHumidity(plantRequest.getMaxHumidity());
         }
-        if (plantRequest.getImage_data() != null) {
+        if (plantRequest.getImageData() != null) {
             plant.setImageData(Base64.getDecoder()
-                    .decode(plantRequest.getImage_data()));
+                    .decode(plantRequest.getImageData()));
         }
 
         plantRepository.save(plant);
