@@ -57,7 +57,7 @@ public class PlantService {
         plantRepository.deleteById(id);
     }
 
-    public void updatePlant (Long id, PlantRequest plantRequest) {
+    public PlantResponse updatePlant (Long id, PlantRequest plantRequest) {
         Plant plant = plantRepository.findById(id)
                 .orElseThrow(() -> new PlantNotFoundException("Plant not found"));
 
@@ -85,6 +85,7 @@ public class PlantService {
         }
 
         plantRepository.save(plant);
+        return plantMapper.toResponse(plant);
     }
 
 }

@@ -32,6 +32,16 @@ public class NotificationService {
                 });
     }
 
+    public void deleteUserFCMToken (Long userId) {
+        userRepository.findById(userId)
+                .ifPresentOrElse((user) -> {
+                    user.setFcmToken(null);
+                    userRepository.save(user);
+                }, () -> {
+                    throw new UsernameNotFoundException("User was not found");
+                });
+    }
+
     public void sendTestNotificationToAlLUsers () {
         userRepository.findAll()
                 .forEach((user) -> {

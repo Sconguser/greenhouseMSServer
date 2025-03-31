@@ -1,6 +1,7 @@
 package com.greenhouse.greenhouse.services;
 
 import com.greenhouse.greenhouse.exceptions.GreenhouseNotFoundException;
+import com.greenhouse.greenhouse.exceptions.PlantNotFoundException;
 import com.greenhouse.greenhouse.mappers.GreenhouseMapper;
 import com.greenhouse.greenhouse.mappers.PlantMapper;
 import com.greenhouse.greenhouse.models.Greenhouse;
@@ -56,20 +57,54 @@ public class GreenhouseService {
         return greenhouseMapper.toResponse(greenhouseRepository);
     }
 
-    public boolean addPlantToGreenhouse (Long greenhouseId, Long plantId) {
-        Optional<Greenhouse> greenhouseOpt = greenhouseRepository.findById(greenhouseId);
+    public GreenhouseResponse updateGreenhouse (GreenhouseRequest request, Long id) {
+        Greenhouse greenhouse = getGreenhouseEntity(id);
+        if (request.getName() != null) {
+            greenhouse.setName(request.getName());
+        }
+        if (request.getIpAddress() != null) {
+            greenhouse.setIpAddress(request.getIpAddress());
+        }
+        if (request.getLocation() != null) {
+            greenhouse.setLocation(request.getLocation());
+        }
+        greenhouseRepository.save(greenhouse);
+        return greenhouseMapper.toResponse(greenhouse);
+    }
+
+    public void deleteGreenhouse (Long id) {
+        greenhouseRepository.deleteById(id);
+    }
+
+    public GreenhouseResponse addPlantToGreenhouse (Long greenhouseId, Long plantId) {
+        Greenhouse greenhouse = getGreenhouseEntity(greenhouseId);
         Optional<Plant> plantOpt = plantRepository.findById(plantId);
 
-        if (greenhouseOpt.isPresent() && plantOpt.isPresent()) {
-            Greenhouse greenhouse = greenhouseOpt.get();
+        if (plantOpt.isPresent()) {
             Plant plant = plantOpt.get();
-
             greenhouse.getPlants()
                     .add(plant);
             greenhouseRepository.save(greenhouse);
-            return true;
+            return greenhouseMapper.toResponse(greenhouse);
         }
-        return false;
+        throw new PlantNotFoundException("Plant " + plantId + " was not found in greenhouse " + greenhouseId);
+    }
+
+    public GreenhouseResponse deletePlantFromGreenhouse (Long greenhouseId, Long plantId) {
+        Greenhouse greenhouse = getGreenhouseEntity(greenhouseId);
+        Optional<Plant> plantToDelete = greenhouse.getPlants()
+                .stream()
+                .filter((plant) -> plant.getId()
+                        .equals(plantId))
+                .findFirst();
+        if (plantToDelete.isPresent()) {
+            greenhouse.getPlants()
+                    .remove(plantToDelete.get());
+            greenhouseRepository.save(greenhouse);
+            return greenhouseMapper.toResponse(greenhouse);
+        } else {
+            throw new PlantNotFoundException("Did not find plant " + plantId + " in greenhouse " + greenhouseId);
+        }
     }
 
     public Plant createOrFetchPlant (PlantRequest plantRequest) {

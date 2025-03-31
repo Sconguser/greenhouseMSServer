@@ -6,6 +6,7 @@ import com.greenhouse.greenhouse.services.PlantService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,8 +41,8 @@ public class PlantController {
     }
 
     @PatchMapping("/{id}")
-    public void updatePlant (@PathVariable Long id, @RequestBody PlantRequest plantRequest) {
-        plantService.updatePlant(id, plantRequest);
+    public ResponseEntity<PlantResponse> updatePlant (@PathVariable Long id, @RequestBody PlantRequest plantRequest) {
+        return ResponseEntity.ok(plantService.updatePlant(id, plantRequest));
     }
 
     @Bean

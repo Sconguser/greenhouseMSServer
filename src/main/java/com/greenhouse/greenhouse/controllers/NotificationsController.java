@@ -26,6 +26,12 @@ public class NotificationsController {
         return ResponseEntity.ok("User token updated");
     }
 
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteUserFCMToken (@PathVariable Long userId) {
+        notificationService.deleteUserFCMToken(userId);
+        return ResponseEntity.ok("User token was deleted");
+    }
+
     @GetMapping("/test")
     public ResponseEntity<?> testSendToAll () {
         notificationService.sendTestNotificationToAlLUsers();
