@@ -4,39 +4,38 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.greenhouse.greenhouse.exceptions.GreenhouseOffException;
 import com.greenhouse.greenhouse.exceptions.GreenhouseStatusNotFoundException;
 import com.greenhouse.greenhouse.exceptions.PlantRequirementsNotMetException;
-import com.greenhouse.greenhouse.mappers.GreenhouseStatusMapper;
+import com.greenhouse.greenhouse.mappers.ZoneStatusMapper;
 import com.greenhouse.greenhouse.models.Greenhouse;
-import com.greenhouse.greenhouse.models.GreenhouseStatus;
 import com.greenhouse.greenhouse.models.Status;
-import com.greenhouse.greenhouse.repositories.GreenhouseStatusRepository;
-import com.greenhouse.greenhouse.requests.GreenhouseStatusRequest;
-import com.greenhouse.greenhouse.responses.GreenhouseStatusResponse;
+import com.greenhouse.greenhouse.repositories.ZoneStatusRepository;
+import com.greenhouse.greenhouse.requests.ZoneStatusRequest;
+import com.greenhouse.greenhouse.responses.ZoneStatusResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class GreenhouseStatusService {
-    private final GreenhouseStatusRepository greenhouseStatusRepository;
+public class ZoneStatusService {
+    private final ZoneStatusRepository zoneStatusRepository;
     private final GreenhouseManager greenhouseManager;
     private final NotificationService notificationService;
-    private final GreenhouseStatusMapper greenhouseStatusMapper;
+    private final ZoneStatusMapper zoneStatusMapper;
 
 
-    public GreenhouseStatusService (GreenhouseStatusRepository greenhouseStatusRepository,
-                                    GreenhouseManager greenhouseManager, NotificationService notificationService,
-                                    GreenhouseStatusMapper greenhouseStatusMapper)
+    public ZoneStatusService (ZoneStatusRepository zoneStatusRepository,
+                              GreenhouseManager greenhouseManager, NotificationService notificationService,
+                              ZoneStatusMapper zoneStatusMapper)
     {
-        this.greenhouseStatusRepository = greenhouseStatusRepository;
+        this.zoneStatusRepository = zoneStatusRepository;
         this.greenhouseManager = greenhouseManager;
         this.notificationService = notificationService;
-        this.greenhouseStatusMapper = greenhouseStatusMapper;
+        this.zoneStatusMapper = zoneStatusMapper;
     }
 
     @Deprecated
-    public GreenhouseStatusResponse getGreenhouseStatus (Long id) {
-        return greenhouseStatusRepository.findById(id)
-                .map(greenhouseStatusMapper::toResponse)
+    public ZoneStatusResponse getGreenhouseStatus (Long id) {
+        return zoneStatusRepository.findById(id)
+                .map(zoneStatusMapper::toResponse)
                 .orElseThrow(() -> new GreenhouseStatusNotFoundException("Greenhouse status not found in database"));
     }
 
@@ -44,36 +43,36 @@ public class GreenhouseStatusService {
     public void setTemperature (Long id, double temperature) {
         GreenhouseStatus greenhouseStatus = fetchGreenhouseStatus(id);
         greenhouseStatus.setTemperature(temperature);
-        greenhouseStatusRepository.save(greenhouseStatus);
+        zoneStatusRepository.save(greenhouseStatus);
     }
 
     @Deprecated
     public void setHumidity (Long id, double humidity) {
         GreenhouseStatus greenhouseStatus = fetchGreenhouseStatus(id);
         greenhouseStatus.setHumidity(humidity);
-        greenhouseStatusRepository.save(greenhouseStatus);
+        zoneStatusRepository.save(greenhouseStatus);
     }
 
-    private GreenhouseStatus updateAndReturnGreenhouseStatus (Long id, GreenhouseStatusRequest greenhouseStatusRequest)
+    private GreenhouseStatus updateAndReturnGreenhouseStatus (Long id, ZoneStatusRequest zoneStatusRequest)
     {
         GreenhouseStatus greenhouseStatus = fetchGreenhouseStatus(id);
-        Double requestHumidity = greenhouseStatusRequest.getHumidity();
+        Double requestHumidity = zoneStatusRequest.getHumidity();
         if (requestHumidity != null) {
             greenhouseStatus.setHumidity(requestHumidity);
         }
-        Double requestTemperature = greenhouseStatusRequest.getTemperature();
+        Double requestTemperature = zoneStatusRequest.getTemperature();
         if (requestTemperature != null) {
             greenhouseStatus.setTemperature(requestTemperature);
         }
-        Double requestSoilHumidity = greenhouseStatusRequest.getSoilHumidity();
+        Double requestSoilHumidity = zoneStatusRequest.getSoilHumidity();
         if (requestSoilHumidity != null) {
             greenhouseStatus.setSoilHumidity(requestSoilHumidity);
         }
-        Status requestStatus = greenhouseStatusRequest.getStatus();
+        Status requestStatus = zoneStatusRequest.getStatus();
         if (requestStatus != null) {
             greenhouseStatus.setStatus(requestStatus);
         }
-        greenhouseStatusRepository.save(greenhouseStatus);
+        zoneStatusRepository.save(greenhouseStatus);
         return greenhouseStatus;
     }
 
@@ -83,19 +82,19 @@ public class GreenhouseStatusService {
     public void setStatus (Long id, Status status) {
         GreenhouseStatus greenhouseStatus = fetchGreenhouseStatus(id);
         greenhouseStatus.setStatus(status);
-        greenhouseStatusRepository.save(greenhouseStatus);
+        zoneStatusRepository.save(greenhouseStatus);
     }
 
     private GreenhouseStatus fetchGreenhouseStatus (Long id) {
-        return greenhouseStatusRepository.findById(id)
+        return zoneStatusRepository.findById(id)
                 .orElseThrow(() -> new GreenhouseStatusNotFoundException("Greenhouse status not found in database"));
     }
 
-    public void processGreenhouseStatus (Long greenhouseId, GreenhouseStatusRequest greenhouseStatusRequest)
+    public void processGreenhouseStatus (Long greenhouseId, ZoneStatusRequest zoneStatusRequest)
     {
         Greenhouse greenhouse = greenhouseManager.getGreenhouseEntity(greenhouseId);
         GreenhouseStatus newStatus = updateAndReturnGreenhouseStatus(greenhouse.getStatus()
-                .getId(), greenhouseStatusRequest);
+                .getId(), zoneStatusRequest);
         if (Status.OFF.equals(newStatus.getStatus())) {
             try {
                 notificationService.sendNotification("Something wrong with greenhouse",

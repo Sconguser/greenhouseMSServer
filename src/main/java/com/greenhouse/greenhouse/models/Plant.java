@@ -29,7 +29,7 @@ public class Plant {
 
     @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToMany(mappedBy = "plants")
-    private List<Greenhouse> greenhouses;
+    private List<Flowerpot> flowerPots;
 
     public Plant () {
     }

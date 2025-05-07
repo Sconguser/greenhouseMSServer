@@ -11,10 +11,10 @@ public class GreenhouseResponse {
     private final String location;
     private final String ipAddress;
     private final List<PlantResponse> plants = new ArrayList<>();
-    private final GreenhouseStatusResponse status;
+    private final ZoneStatusResponse status;
 
     public GreenhouseResponse (String name, String location, String ipAddress,
-                               GreenhouseStatusResponse status, List<PlantResponse> plants,
+                               ZoneStatusResponse status, List<PlantResponse> plants,
                                Long id)
     {
         this.name = name;
@@ -44,7 +44,7 @@ public class GreenhouseResponse {
         return plants;
     }
 
-    public GreenhouseStatusResponse getStatus () {
+    public ZoneStatusResponse getStatus () {
         return status;
     }
 

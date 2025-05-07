@@ -1,31 +1,26 @@
 package com.greenhouse.greenhouse.models;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.List;
 
 @Entity
 public class Greenhouse {
-    @ManyToMany
-    @JoinTable(name = "greenhouse_plant", joinColumns = @JoinColumn(name = "greenhouse_id"), inverseJoinColumns = @JoinColumn(name = "plant_id"))
-    List<Plant> plants;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
+    private List<Zone> zones;
+
     private String name;
     private String location;
     private String ipAddress;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "status_id", unique = true)
-    private GreenhouseStatus status;
+
+    private Status status = Status.OFF;
 
     public Greenhouse () {
-        status = new GreenhouseStatus();
-        this.status.setGreenhouse(this);
     }
-
     public Long getId () {
         return id;
     }
@@ -58,25 +53,24 @@ public class Greenhouse {
         this.ipAddress = ipAddress;
     }
 
-    public List<Plant> getPlants () {
-        return plants;
-    }
-
-    public void setPlants (List<Plant> plants) {
-        this.plants = plants;
-    }
-
-    public GreenhouseStatus getStatus () {
-        return status;
-    }
-
-    public void setStatus (GreenhouseStatus status) {
-        this.status = status;
-        status.setGreenhouse(this);
-    }
-
     @Override
     public String toString () {
         return "Greenhouse: " + this.name + "\n" + "location " + this.location + "\n";
+    }
+
+    public List<Zone> getZones () {
+        return zones;
+    }
+
+    public void setZones (List<Zone> zones) {
+        this.zones = zones;
+    }
+
+    public Status getStatus () {
+        return status;
+    }
+
+    public void setStatus (Status status) {
+        this.status = status;
     }
 }

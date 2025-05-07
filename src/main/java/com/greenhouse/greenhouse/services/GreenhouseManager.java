@@ -2,7 +2,6 @@ package com.greenhouse.greenhouse.services;
 
 import com.greenhouse.greenhouse.exceptions.PlantRequirementsNotMetException;
 import com.greenhouse.greenhouse.models.Greenhouse;
-import com.greenhouse.greenhouse.models.GreenhouseStatus;
 import com.greenhouse.greenhouse.models.Plant;
 import org.springframework.stereotype.Service;
 
