@@ -44,6 +44,14 @@ public class GlobalExceptionHandler {
         return composeResponse(greenhouseStatusNotFoundException, request, HttpStatus.I_AM_A_TEAPOT);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ParameterNotMutableException.class)
+    public ResponseEntity<ErrorMessage> handleParameterNotMutableException (
+            ParameterNotMutableException parameterNotMutableException, WebRequest request)
+    {
+        return composeResponse(parameterNotMutableException, request, HttpStatus.BAD_REQUEST);
+    }
+
     private ResponseEntity<ErrorMessage> composeResponse (Exception ex, WebRequest request, HttpStatus status) {
         ErrorMessage message = new ErrorMessage(status.value(), new Date(), ex.getMessage(),
                 request.getDescription(false));
