@@ -6,15 +6,13 @@ import java.util.List;
 
 @Entity
 public class Flowerpot {
-    @ManyToMany
-    @JoinTable(name = "flowerpot_plant", joinColumns = @JoinColumn(name = "flowerpot_id"), inverseJoinColumns = @JoinColumn(name = "plant_id"))
-    private List<Plant> plants;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-
-    private String description;
+    @ManyToMany
+    @JoinTable(name = "flowerpot_plant", joinColumns = @JoinColumn(name = "flowerpot_id"), inverseJoinColumns = @JoinColumn(name = "plant_id"))
+    private List<Plant> plants;
 
     @OneToMany(mappedBy = "flowerpot", cascade = CascadeType.ALL)
     private List<ParameterEntity> parameterEntities;
@@ -38,15 +36,6 @@ public class Flowerpot {
 
     public void removeParameterEntity (String name) {
         parameterEntities.removeIf(entity -> entity.name.equals(name));
-    }
-
-
-    public String getDescription () {
-        return description;
-    }
-
-    public void setDescription (String description) {
-        this.description = description;
     }
 
     public String getName () {
@@ -73,9 +62,13 @@ public class Flowerpot {
         this.plants = plants;
     }
 
+    public void addPlant (Plant plant) {
+        this.plants.add(plant);
+    }
+
     @Override
     public String toString () {
-        return "Flowerpot: " + this.name + "\n" + "description: " + this.description + "\n";
+        return "Flowerpot: " + this.name + "\n";
     }
 
 
