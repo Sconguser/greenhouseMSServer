@@ -1,8 +1,5 @@
 package com.greenhouse.greenhouse.controllers;
 
-import com.greenhouse.greenhouse.models.Status;
-import com.greenhouse.greenhouse.requests.ZoneStatusRequest;
-import com.greenhouse.greenhouse.responses.ZoneStatusResponse;
 import com.greenhouse.greenhouse.services.ZoneStatusService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContext;

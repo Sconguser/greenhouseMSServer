@@ -11,7 +11,6 @@ public class Zone {
     private Long id;
 
     private String name;
-    private String description;
     @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL)
     private List<Flowerpot> flowerpots;
 
@@ -41,20 +40,21 @@ public class Zone {
         this.name = name;
     }
 
-    public String getDescription () {
-        return description;
-    }
-
-    public void setDescription (String description) {
-        this.description = description;
-    }
-
     public List<Flowerpot> getFlowerpots () {
         return flowerpots;
     }
 
     public void setFlowerpots (List<Flowerpot> flowerpots) {
         this.flowerpots = flowerpots;
+    }
+
+    public void addFlowerpot (Flowerpot flowerpot) {
+        this.flowerpots.add(flowerpot);
+    }
+
+    public void deleteFlowerpot (Long flowerpotId) {
+        this.flowerpots.removeIf(flowerpot -> flowerpot.getId()
+                .equals(flowerpotId));
     }
 
     public ZoneStatus getZoneStatus () {
