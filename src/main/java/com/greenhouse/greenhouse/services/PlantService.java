@@ -67,18 +67,6 @@ public class PlantService {
         if (plantRequest.getDescription() != null) {
             plant.setDescription(plantRequest.getDescription());
         }
-        if (plantRequest.getMinTemperature() != null) {
-            plant.setMinTemperature(plantRequest.getMinTemperature());
-        }
-        if (plantRequest.getMaxTemperature() != null) {
-            plant.setMaxTemperature(plantRequest.getMaxTemperature());
-        }
-        if (plantRequest.getMinHumidity() != null) {
-            plant.setMinHumidity(plantRequest.getMinHumidity());
-        }
-        if (plantRequest.getMaxHumidity() != null) {
-            plant.setMinHumidity(plantRequest.getMaxHumidity());
-        }
         if (plantRequest.getImageData() != null) {
             plant.setImageData(Base64.getDecoder()
                     .decode(plantRequest.getImageData()));

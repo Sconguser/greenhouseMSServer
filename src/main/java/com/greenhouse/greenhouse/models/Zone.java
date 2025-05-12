@@ -14,9 +14,9 @@ public class Zone {
     @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL)
     private List<Flowerpot> flowerpots;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "status_id", unique = true)
-    private ZoneStatus zoneStatus;
+    @ManyToOne
+    @JoinColumn(name = "greenhouse_id")
+    private Greenhouse greenhouse;
 
     @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL)
     private List<ParameterEntity> parameterEntities;
@@ -57,14 +57,6 @@ public class Zone {
                 .equals(flowerpotId));
     }
 
-    public ZoneStatus getZoneStatus () {
-        return zoneStatus;
-    }
-
-    public void setZoneStatus (ZoneStatus zoneStatus) {
-        this.zoneStatus = zoneStatus;
-    }
-
     public void addParameterEntity (ParameterEntity parameterEntity) {
         parameterEntity.setZone(this);
         this.parameterEntities.add(parameterEntity);
@@ -76,5 +68,17 @@ public class Zone {
 
     public List<ParameterEntity> getParameterEntities () {
         return this.parameterEntities;
+    }
+
+    public Greenhouse getGreenhouse () {
+        return greenhouse;
+    }
+
+    public void setGreenhouse (Greenhouse greenhouse) {
+        this.greenhouse = greenhouse;
+    }
+
+    public void setParameterEntities (List<ParameterEntity> parameterEntities) {
+        this.parameterEntities = parameterEntities;
     }
 }

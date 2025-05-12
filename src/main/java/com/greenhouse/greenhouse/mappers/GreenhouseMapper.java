@@ -6,7 +6,7 @@ import com.greenhouse.greenhouse.responses.GreenhouseResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(componentModel = "spring", uses = {ZoneStatusMapper.class, PlantMapper.class})
+@Mapper(componentModel = "spring", uses = {ZoneMapper.class})
 public interface GreenhouseMapper {
     GreenhouseMapper INSTANCE = Mappers.getMapper(GreenhouseMapper.class);
 
