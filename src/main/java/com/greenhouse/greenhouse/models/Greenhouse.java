@@ -19,6 +19,9 @@ public class Greenhouse {
 
     private Status status = Status.OFF;
 
+    @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
+    private List<ParameterEntity> parameterEntities;
+
     public Greenhouse () {
     }
     public Long getId () {
@@ -72,5 +75,18 @@ public class Greenhouse {
 
     public void setStatus (Status status) {
         this.status = status;
+    }
+
+    public void addParameterEntity (ParameterEntity parameterEntity) {
+        parameterEntity.setGreenhouse(this);
+        this.parameterEntities.add(parameterEntity);
+    }
+
+    public void removeParameterEntity (String name) {
+        this.parameterEntities.removeIf(parameterEntity -> parameterEntity.name.equals(name));
+    }
+
+    public List<ParameterEntity> getParameterEntities () {
+        return this.parameterEntities;
     }
 }

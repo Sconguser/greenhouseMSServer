@@ -9,5 +9,15 @@ public class RequirementEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     String name;
+    @ManyToOne
+    @JoinColumn(name = "plant_id")
+    private Plant plant;
 
+    public Plant getPlant () {
+        return this.plant;
+    }
+
+    public void setPlant (Plant plant) {
+        this.plant = plant;
+    }
 }

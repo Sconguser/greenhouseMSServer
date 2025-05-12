@@ -16,7 +16,9 @@ public class Flowerpot {
 
     private String description;
 
-    private double soilHumidity;
+    @OneToMany(mappedBy = "flowerpot", cascade = CascadeType.ALL)
+    private List<ParameterEntity> parameterEntities;
+
     @ManyToOne
     @JoinColumn(name = "zone_id")
     private Zone zone;
@@ -25,13 +27,19 @@ public class Flowerpot {
 
     }
 
-    public double getSoilHumidity () {
-        return soilHumidity;
+    public List<ParameterEntity> getParameterEntities () {
+        return parameterEntities;
     }
 
-    public void setSoilHumidity (double soilHumidity) {
-        this.soilHumidity = soilHumidity;
+    public void addParameterEntity (ParameterEntity parameterEntity) {
+        parameterEntity.setFlowerpot(this);
+        parameterEntities.add(parameterEntity);
     }
+
+    public void removeParameterEntity (String name) {
+        parameterEntities.removeIf(entity -> entity.name.equals(name));
+    }
+
 
     public String getDescription () {
         return description;

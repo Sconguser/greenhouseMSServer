@@ -14,14 +14,8 @@ public class Plant {
     private String name;
     private String description;
 
-    private int minTemperature;
-    private int maxTemperature;
-
-    private int minHumidity;
-    private int maxHumidity;
-
-    private int minSoilHumidity;
-    private int maxSoilHumidity;
+    @OneToMany(mappedBy = "plant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RequirementEntity> requirementEntities;
 
     @Lob
     @Column
@@ -34,44 +28,26 @@ public class Plant {
     public Plant () {
     }
 
+    public List<RequirementEntity> getRequirementEntities () {
+        return requirementEntities;
+    }
+
+    public void addRequirementEntity (RequirementEntity requirementEntity) {
+        requirementEntity.setPlant(this);
+        this.requirementEntities.add(requirementEntity);
+    }
+
+    public void removeRequirementEntity (String name) {
+        requirementEntities.removeIf(entity -> entity.name.equals(name));
+    }
+
+
     public String getDescription () {
         return description;
     }
 
     public void setDescription (String description) {
         this.description = description;
-    }
-
-    public int getMinTemperature () {
-        return minTemperature;
-    }
-
-    public void setMinTemperature (int minTemperature) {
-        this.minTemperature = minTemperature;
-    }
-
-    public int getMinHumidity () {
-        return minHumidity;
-    }
-
-    public void setMinHumidity (int minHumidity) {
-        this.minHumidity = minHumidity;
-    }
-
-    public int getMaxSoilHumidity () {
-        return maxSoilHumidity;
-    }
-
-    public void setMaxSoilHumidity (int maxSoilHumidity) {
-        this.maxSoilHumidity = maxSoilHumidity;
-    }
-
-    public int getMinSoilHumidity () {
-        return minSoilHumidity;
-    }
-
-    public void setMinSoilHumidity (int minSoilHumidity) {
-        this.minSoilHumidity = minSoilHumidity;
     }
 
     public String getName () {
@@ -98,24 +74,8 @@ public class Plant {
         this.imageData = imageData;
     }
 
-    public int getMaxTemperature () {
-        return maxTemperature;
-    }
-
-    public void setMaxTemperature (int maxTemperature) {
-        this.maxTemperature = maxTemperature;
-    }
-
-    public int getMaxHumidity () {
-        return maxHumidity;
-    }
-
-    public void setMaxHumidity (int maxHumidity) {
-        this.maxHumidity = maxHumidity;
-    }
-
     @Override
     public String toString () {
-        return "Plant: " + name + "\n" + "required min / max temperature " + minTemperature + " / " + maxTemperature + "\n" + "required min / max humidity " + minHumidity + " / " + maxHumidity + "\n";
+        return "Plant: " + name + "\n";
     }
 }

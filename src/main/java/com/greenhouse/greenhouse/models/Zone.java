@@ -19,8 +19,8 @@ public class Zone {
     @JoinColumn(name = "status_id", unique = true)
     private ZoneStatus zoneStatus;
 
-    private double humidity;
-    private double temperature;
+    @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL)
+    private List<ParameterEntity> parameterEntities;
 
     public Zone () {
     }
@@ -57,27 +57,24 @@ public class Zone {
         this.flowerpots = flowerpots;
     }
 
-    public double getHumidity () {
-        return humidity;
-    }
-
-    public void setHumidity (double humidity) {
-        this.humidity = humidity;
-    }
-
-    public double getTemperature () {
-        return temperature;
-    }
-
-    public void setTemperature (double temperature) {
-        this.temperature = temperature;
-    }
-
     public ZoneStatus getZoneStatus () {
         return zoneStatus;
     }
 
     public void setZoneStatus (ZoneStatus zoneStatus) {
         this.zoneStatus = zoneStatus;
+    }
+
+    public void addParameterEntity (ParameterEntity parameterEntity) {
+        parameterEntity.setZone(this);
+        this.parameterEntities.add(parameterEntity);
+    }
+
+    public void deleteParameterEntity (String name) {
+        this.parameterEntities.removeIf(parameterEntity -> parameterEntity.name.equals(name));
+    }
+
+    public List<ParameterEntity> getParameterEntities () {
+        return this.parameterEntities;
     }
 }
