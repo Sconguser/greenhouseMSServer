@@ -69,6 +69,10 @@ public class Greenhouse {
         this.zones = zones;
     }
 
+    public void addZone (Zone zone) {
+        this.zones.add(zone);
+    }
+
     public Status getStatus () {
         return status;
     }

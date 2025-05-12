@@ -5,27 +5,23 @@ import java.util.List;
 
 public class GreenhouseResponse {
 
-
     private final Long id;
     private final String name;
     private final String location;
     private final String ipAddress;
-    private final List<PlantResponse> plants = new ArrayList<>();
-    private final ZoneStatusResponse status;
+    private final List<ZoneResponse> zones = new ArrayList<>();
 
-    public GreenhouseResponse (String name, String location, String ipAddress,
-                               ZoneStatusResponse status, List<PlantResponse> plants,
+    public GreenhouseResponse (String name, String location, String ipAddress, List<ZoneResponse> zones,
                                Long id)
     {
         this.name = name;
         this.location = location;
         this.ipAddress = ipAddress;
-        this.status = status;
         this.id = id;
-        if (plants == null) {
-            plants = new ArrayList<>();
+        if (zones == null) {
+            zones = new ArrayList<>();
         }
-        this.plants.addAll(plants);
+        this.zones.addAll(zones);
     }
 
     public String getName () {
@@ -40,12 +36,8 @@ public class GreenhouseResponse {
         return ipAddress;
     }
 
-    public List<PlantResponse> getPlants () {
-        return plants;
-    }
-
-    public ZoneStatusResponse getStatus () {
-        return status;
+    public List<ZoneResponse> getZones () {
+        return zones;
     }
 
     public Long getId () {

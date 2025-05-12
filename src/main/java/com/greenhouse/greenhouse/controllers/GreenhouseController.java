@@ -3,7 +3,9 @@ package com.greenhouse.greenhouse.controllers;
 import com.greenhouse.greenhouse.models.Plant;
 import com.greenhouse.greenhouse.requests.GreenhouseRequest;
 import com.greenhouse.greenhouse.requests.PlantRequest;
+import com.greenhouse.greenhouse.requests.ZoneRequest;
 import com.greenhouse.greenhouse.responses.GreenhouseResponse;
+import com.greenhouse.greenhouse.responses.ZoneResponse;
 import com.greenhouse.greenhouse.services.GreenhouseService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,21 +49,8 @@ public class GreenhouseController {
         return ResponseEntity.ok("Greenhouse " + greenhouseId + " deleted");
     }
 
-    @PostMapping("/addPlant/{greenhouseId}")
-    public ResponseEntity<GreenhouseResponse> addPlantToGreenhouse (@PathVariable Long greenhouseId,
-                                                        @RequestBody PlantRequest plantRequest)
-    {
-
-        Plant storedPlant = greenhouseService.createOrFetchPlant(plantRequest);
-        return ResponseEntity.ok(greenhouseService.addPlantToGreenhouse(greenhouseId, storedPlant.getId()));
-
+    @PostMapping("/addZone/{id}")
+    public ResponseEntity<ZoneResponse> addZone (@PathVariable Long id, @Valid @RequestBody ZoneRequest zoneRequest) {
+        return ResponseEntity.ok(greenhouseService.addZone(id, zoneRequest));
     }
-
-    @PatchMapping("/deletePlant/{greenhouseId}")
-    public ResponseEntity<GreenhouseResponse> deletePlantFromGreenhouse (@PathVariable Long greenhouseId,
-                                                                         @RequestParam Long plantId)
-    {
-        return ResponseEntity.ok(greenhouseService.deletePlantFromGreenhouse(greenhouseId, plantId));
-    }
-
 }

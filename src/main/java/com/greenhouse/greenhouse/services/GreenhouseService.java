@@ -1,37 +1,34 @@
 package com.greenhouse.greenhouse.services;
 
 import com.greenhouse.greenhouse.exceptions.GreenhouseNotFoundException;
-import com.greenhouse.greenhouse.exceptions.PlantNotFoundException;
 import com.greenhouse.greenhouse.mappers.GreenhouseMapper;
-import com.greenhouse.greenhouse.mappers.PlantMapper;
+import com.greenhouse.greenhouse.mappers.ZoneMapper;
 import com.greenhouse.greenhouse.models.Greenhouse;
-import com.greenhouse.greenhouse.models.Plant;
+import com.greenhouse.greenhouse.models.Zone;
 import com.greenhouse.greenhouse.repositories.GreenhouseRepository;
 import com.greenhouse.greenhouse.repositories.PlantRepository;
 import com.greenhouse.greenhouse.requests.GreenhouseRequest;
-import com.greenhouse.greenhouse.requests.PlantRequest;
+import com.greenhouse.greenhouse.requests.ZoneRequest;
 import com.greenhouse.greenhouse.responses.GreenhouseResponse;
+import com.greenhouse.greenhouse.responses.ZoneResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class GreenhouseService {
     private final GreenhouseRepository greenhouseRepository;
-    private final PlantRepository plantRepository;
     private final GreenhouseMapper greenhouseMapper;
-    private final PlantMapper plantMapper;
+    private final ZoneMapper zoneMapper;
 
     @Autowired
     public GreenhouseService (GreenhouseRepository greenhouseRepository, PlantRepository plantRepository,
-                              GreenhouseMapper greenhouseMapper, PlantMapper plantMapper)
+                              GreenhouseMapper greenhouseMapper, ZoneMapper zoneMapper)
     {
         this.greenhouseRepository = greenhouseRepository;
-        this.plantRepository = plantRepository;
         this.greenhouseMapper = greenhouseMapper;
-        this.plantMapper = plantMapper;
+        this.zoneMapper = zoneMapper;
     }
 
     public GreenhouseResponse getGreenhouse (Long id) {
@@ -76,43 +73,11 @@ public class GreenhouseService {
         greenhouseRepository.deleteById(id);
     }
 
-    public GreenhouseResponse addPlantToGreenhouse (Long greenhouseId, Long plantId) {
-        Greenhouse greenhouse = getGreenhouseEntity(greenhouseId);
-        Optional<Plant> plantOpt = plantRepository.findById(plantId);
-
-        if (plantOpt.isPresent()) {
-            Plant plant = plantOpt.get();
-            greenhouse.getPlants()
-                    .add(plant);
-            greenhouseRepository.save(greenhouse);
-            return greenhouseMapper.toResponse(greenhouse);
-        }
-        throw new PlantNotFoundException("Plant " + plantId + " was not found in greenhouse " + greenhouseId);
-    }
-
-    public GreenhouseResponse deletePlantFromGreenhouse (Long greenhouseId, Long plantId) {
-        Greenhouse greenhouse = getGreenhouseEntity(greenhouseId);
-        Optional<Plant> plantToDelete = greenhouse.getPlants()
-                .stream()
-                .filter((plant) -> plant.getId()
-                        .equals(plantId))
-                .findFirst();
-        if (plantToDelete.isPresent()) {
-            greenhouse.getPlants()
-                    .remove(plantToDelete.get());
-            greenhouseRepository.save(greenhouse);
-            return greenhouseMapper.toResponse(greenhouse);
-        } else {
-            throw new PlantNotFoundException("Did not find plant " + plantId + " in greenhouse " + greenhouseId);
-        }
-    }
-
-    public Plant createOrFetchPlant (PlantRequest plantRequest) {
-        return plantRepository.findByName(plantRequest.getName())
-                .orElseGet(() -> {
-                    Plant plant = plantMapper.toEntity(plantRequest);
-                    plantRepository.save(plant);
-                    return plant;
-                });
+    public ZoneResponse addZone (Long id, ZoneRequest zoneRequest) {
+        Greenhouse greenhouse = getGreenhouseEntity(id);
+        Zone zone = zoneMapper.toEntity(zoneRequest);
+        greenhouse.addZone(zone);
+        greenhouseRepository.save(greenhouse);
+        return zoneMapper.toResponse(zone);
     }
 }
