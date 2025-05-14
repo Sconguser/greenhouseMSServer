@@ -1,12 +1,12 @@
 package com.greenhouse.greenhouse.controllers;
 
-import com.greenhouse.greenhouse.models.Plant;
+import com.greenhouse.greenhouse.dtos.ParameterDTO;
 import com.greenhouse.greenhouse.requests.GreenhouseRequest;
-import com.greenhouse.greenhouse.requests.PlantRequest;
 import com.greenhouse.greenhouse.requests.ZoneRequest;
 import com.greenhouse.greenhouse.responses.GreenhouseResponse;
 import com.greenhouse.greenhouse.responses.ZoneResponse;
 import com.greenhouse.greenhouse.services.GreenhouseService;
+import com.greenhouse.greenhouse.services.ParameterService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,9 +17,11 @@ import java.util.List;
 @RequestMapping("/greenhouse")
 public class GreenhouseController {
     private final GreenhouseService greenhouseService;
+    private final ParameterService parameterService;
 
-    public GreenhouseController (GreenhouseService greenhouseService) {
+    public GreenhouseController (GreenhouseService greenhouseService, ParameterService parameterService) {
         this.greenhouseService = greenhouseService;
+        this.parameterService = parameterService;
     }
 
     @GetMapping("/{id}")
@@ -49,8 +51,17 @@ public class GreenhouseController {
         return ResponseEntity.ok("Greenhouse " + greenhouseId + " deleted");
     }
 
-    @PostMapping("/addZone/{id}")
+    @PostMapping("{id}/addZone")
     public ResponseEntity<ZoneResponse> addZone (@PathVariable Long id, @Valid @RequestBody ZoneRequest zoneRequest) {
         return ResponseEntity.ok(greenhouseService.addZone(id, zoneRequest));
+    }
+
+    @PostMapping("/{id}/addParameter")
+    public ResponseEntity<ParameterDTO> addParameter (@PathVariable Long id, @Valid @RequestBody ParameterDTO parameterDTO) {
+        return ResponseEntity.ok(parameterService.addToGreenhouse(id, parameterDTO));
+    }
+    @GetMapping("/{id}/parameters")
+    public ResponseEntity<List<ParameterDTO>> getParameters(@PathVariable Long id){
+        return ResponseEntity.ok(parameterService.getGreenhouseParameters(id));
     }
 }
