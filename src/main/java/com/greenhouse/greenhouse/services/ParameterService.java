@@ -80,4 +80,8 @@ public class ParameterService {
                 .map(parameterMapper::toDto)
                 .toList();
     }
+
+    public void deleteParameter (Long paramenterId) {
+        parameterRepository.deleteById(paramenterId);
+    }
 }
