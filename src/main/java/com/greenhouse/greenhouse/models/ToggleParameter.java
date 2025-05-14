@@ -4,28 +4,40 @@ package com.greenhouse.greenhouse.models;
 import com.greenhouse.greenhouse.exceptions.ParameterNotMutableException;
 
 public class ToggleParameter extends Parameter<ToggleValue> {
-    private ToggleValue value;
+    private ToggleValue currentValue;
+    private ToggleValue requestedValue;
 
-    public ToggleParameter (String name, ToggleValue value) {
+    public ToggleParameter (String name, ToggleValue currentValue, ToggleValue requestedValue) {
         super(name);
-        this.value = value;
+        this.currentValue = currentValue;
+        this.requestedValue = requestedValue;
     }
 
     @Override
-    public ToggleValue getValue () {
-        return value;
+    public ToggleValue getCurrentValue () {
+        return currentValue;
     }
 
     @Override
-    public void setValue (ToggleValue value) {
+    public void setCurrentValue (ToggleValue currentValue) {
+        this.currentValue = currentValue;
+    }
+
+    @Override
+    public ToggleValue getRequestedValue () {
+        return requestedValue;
+    }
+
+    @Override
+    public void setRequestedValue (ToggleValue requestedValue) {
         if(!isMutable()){
             throw new ParameterNotMutableException("Parameter is read only");
         }
-        this.value = value;
+        this.requestedValue = requestedValue;
     }
 
     @Override
     public String getDescription () {
-        return value.name();
+        return currentValue.name();
     }
 }

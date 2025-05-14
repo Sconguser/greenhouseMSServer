@@ -9,9 +9,11 @@ public abstract class Parameter<T> {
         this.name = name;
     }
 
-    public abstract T getValue ();
+    public abstract T getCurrentValue ();
 
-    public abstract void setValue (T value);
+    public abstract void setCurrentValue (T currentValue);
+    public abstract T getRequestedValue();
+    public abstract void setRequestedValue(T requestedValue);
 
     public abstract String getDescription ();
 

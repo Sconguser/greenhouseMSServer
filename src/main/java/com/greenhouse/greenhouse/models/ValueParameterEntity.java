@@ -4,8 +4,9 @@ import jakarta.persistence.Entity;
 
 @Entity
 public class ValueParameterEntity extends ParameterEntity {
-    double value;
-    double min;
-    double max;
+    Double currentValue;
+    Double requestedValue;
+    Double min;
+    Double max;
     String unit;
 }

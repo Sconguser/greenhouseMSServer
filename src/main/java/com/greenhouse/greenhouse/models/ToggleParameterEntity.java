@@ -4,5 +4,6 @@ import jakarta.persistence.Entity;
 
 @Entity
 public class ToggleParameterEntity extends ParameterEntity {
-    ToggleValue value;
+    ToggleValue currentValue;
+    ToggleValue requestedValue;
 }
