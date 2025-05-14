@@ -20,7 +20,10 @@ public class Greenhouse {
     private Status status = Status.OFF;
 
     @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
-    private List<ParameterEntity> parameterEntities;
+    private List<ParameterEntity> requestedParameters;
+
+    @OneToMany(mappedBy = "flowerpot", cascade = CascadeType.ALL)
+    private List<ParameterEntity> currentParameters;
 
     public Greenhouse () {
     }
@@ -81,16 +84,33 @@ public class Greenhouse {
         this.status = status;
     }
 
-    public void addParameterEntity (ParameterEntity parameterEntity) {
+    public void addRequestedParameter (ParameterEntity parameterEntity) {
         parameterEntity.setGreenhouse(this);
-        this.parameterEntities.add(parameterEntity);
+        this.requestedParameters.add(parameterEntity);
     }
 
-    public void removeParameterEntity (String name) {
-        this.parameterEntities.removeIf(parameterEntity -> parameterEntity.name.equals(name));
+    public void removeRequestedParameter (String name) {
+        this.requestedParameters.removeIf(parameterEntity -> parameterEntity.name.equals(name));
     }
 
-    public List<ParameterEntity> getParameterEntities () {
-        return this.parameterEntities;
+    public List<ParameterEntity> getRequestedParameters () {
+        return this.requestedParameters;
+    }
+
+    public void addCurrentParameter (ParameterEntity currentParameter) {
+        currentParameter.setGreenhouse(this);
+        this.currentParameters.add(currentParameter);
+    }
+
+    public void deleteCurrentParameter (String name) {
+        this.currentParameters.removeIf(parameterEntity -> parameterEntity.name.equals(name));
+    }
+
+    public List<ParameterEntity> getCurrentParameters () {
+        return this.currentParameters;
+    }
+
+    public void setCurrentParameters (List<ParameterEntity> currentParameters) {
+        this.currentParameters = currentParameters;
     }
 }

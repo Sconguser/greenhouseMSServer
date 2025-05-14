@@ -19,7 +19,10 @@ public class Zone {
     private Greenhouse greenhouse;
 
     @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL)
-    private List<ParameterEntity> parameterEntities;
+    private List<ParameterEntity> requestedParameters;
+
+    @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL)
+    private List<ParameterEntity> currentParameters;
 
     public Zone () {
     }
@@ -57,17 +60,38 @@ public class Zone {
                 .equals(flowerpotId));
     }
 
-    public void addParameterEntity (ParameterEntity parameterEntity) {
+    public void addRequestedParameter (ParameterEntity parameterEntity) {
         parameterEntity.setZone(this);
-        this.parameterEntities.add(parameterEntity);
+        this.requestedParameters.add(parameterEntity);
     }
 
-    public void deleteParameterEntity (String name) {
-        this.parameterEntities.removeIf(parameterEntity -> parameterEntity.name.equals(name));
+    public void deleteRequestedParameter (String name) {
+        this.requestedParameters.removeIf(parameterEntity -> parameterEntity.name.equals(name));
     }
 
-    public List<ParameterEntity> getParameterEntities () {
-        return this.parameterEntities;
+    public List<ParameterEntity> getRequestedParameters () {
+        return this.requestedParameters;
+    }
+
+    public void setRequestedParameters (List<ParameterEntity> requestedParameters) {
+        this.requestedParameters = requestedParameters;
+    }
+
+    public void addCurrentParameter (ParameterEntity currentParameter) {
+        currentParameter.setZone(this);
+        this.currentParameters.add(currentParameter);
+    }
+
+    public void deleteCurrentParameter (String name) {
+        this.currentParameters.removeIf(parameterEntity -> parameterEntity.name.equals(name));
+    }
+
+    public List<ParameterEntity> getCurrentParameters () {
+        return this.currentParameters;
+    }
+
+    public void setCurrentParameters (List<ParameterEntity> currentParameters) {
+        this.currentParameters = currentParameters;
     }
 
     public Greenhouse getGreenhouse () {
@@ -76,9 +100,5 @@ public class Zone {
 
     public void setGreenhouse (Greenhouse greenhouse) {
         this.greenhouse = greenhouse;
-    }
-
-    public void setParameterEntities (List<ParameterEntity> parameterEntities) {
-        this.parameterEntities = parameterEntities;
     }
 }

@@ -15,7 +15,11 @@ public class Flowerpot {
     private List<Plant> plants;
 
     @OneToMany(mappedBy = "flowerpot", cascade = CascadeType.ALL)
-    private List<ParameterEntity> parameterEntities;
+    private List<ParameterEntity> requestedParameters;
+
+    @OneToMany(mappedBy = "flowerpot", cascade = CascadeType.ALL)
+    private List<ParameterEntity> currentParameters;
+
 
     @ManyToOne
     @JoinColumn(name = "zone_id")
@@ -25,17 +29,34 @@ public class Flowerpot {
 
     }
 
-    public List<ParameterEntity> getParameterEntities () {
-        return parameterEntities;
+    public List<ParameterEntity> getRequestedParameters () {
+        return requestedParameters;
     }
 
-    public void addParameterEntity (ParameterEntity parameterEntity) {
+    public void addRequestedParameter (ParameterEntity parameterEntity) {
         parameterEntity.setFlowerpot(this);
-        parameterEntities.add(parameterEntity);
+        requestedParameters.add(parameterEntity);
     }
 
-    public void removeParameterEntity (String name) {
-        parameterEntities.removeIf(entity -> entity.name.equals(name));
+    public void removeRequestedParameter (String name) {
+        requestedParameters.removeIf(entity -> entity.name.equals(name));
+    }
+
+    public void addCurrentParameter (ParameterEntity currentParameter) {
+        currentParameter.setFlowerpot(this);
+        this.currentParameters.add(currentParameter);
+    }
+
+    public void deleteCurrentParameter (String name) {
+        this.currentParameters.removeIf(parameterEntity -> parameterEntity.name.equals(name));
+    }
+
+    public List<ParameterEntity> getCurrentParameters () {
+        return this.currentParameters;
+    }
+
+    public void setCurrentParameters (List<ParameterEntity> currentParameters) {
+        this.currentParameters = currentParameters;
     }
 
     public String getName () {
