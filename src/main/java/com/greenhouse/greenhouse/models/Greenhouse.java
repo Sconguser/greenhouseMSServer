@@ -2,6 +2,7 @@ package com.greenhouse.greenhouse.models;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -11,7 +12,7 @@ public class Greenhouse {
     private Long id;
 
     @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
-    private List<Zone> zones;
+    private List<Zone> zones = new ArrayList<>();
 
     private String name;
     private String location;
@@ -20,10 +21,10 @@ public class Greenhouse {
     private Status status = Status.OFF;
 
     @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
-    private List<ParameterEntity> requestedParameters;
+    private List<ParameterEntity> requestedParameters = new ArrayList<>();
 
-    @OneToMany(mappedBy = "flowerpot", cascade = CascadeType.ALL)
-    private List<ParameterEntity> currentParameters;
+    @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
+    private List<ParameterEntity> currentParameters = new ArrayList<>();
 
     public Greenhouse () {
     }

@@ -50,6 +50,9 @@ public class GreenhouseService {
 
     public GreenhouseResponse addGreenhouse(GreenhouseRequest request){
         Greenhouse greenhouse = greenhouseMapper.toEntity(request);
+        Zone zone = new Zone();
+        zone.setGreenhouse(greenhouse);
+        greenhouse.addZone(zone);
         Greenhouse greenhouseRepository = this.greenhouseRepository.save(greenhouse);
         return greenhouseMapper.toResponse(greenhouseRepository);
     }

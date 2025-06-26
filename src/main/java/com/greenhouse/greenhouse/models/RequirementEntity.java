@@ -20,4 +20,8 @@ public class RequirementEntity {
     public void setPlant (Plant plant) {
         this.plant = plant;
     }
+
+    public String getName(){
+        return name;
+    }
 }

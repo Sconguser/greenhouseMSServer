@@ -13,17 +13,24 @@ import com.greenhouse.greenhouse.repositories.FlowerpotRepository;
 import com.greenhouse.greenhouse.repositories.GreenhouseRepository;
 import com.greenhouse.greenhouse.repositories.ParameterRepository;
 import com.greenhouse.greenhouse.repositories.ZoneRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class ParameterService {
+    @Autowired
     private ParameterMapper parameterMapper;
+    @Autowired
     private ParameterRepository parameterRepository;
+    @Autowired
     private GreenhouseRepository greenhouseRepository;
+    @Autowired
     private ZoneRepository zoneRepository;
+    @Autowired
     private FlowerpotRepository flowerpotRepository;
+
 
     public ParameterDTO addToGreenhouse (Long greenhouseId, ParameterDTO parameterDTO) {
         Greenhouse greenhouse = greenhouseRepository.findById(greenhouseId)

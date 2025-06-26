@@ -3,7 +3,8 @@ package com.greenhouse.greenhouse.services;
 import com.greenhouse.greenhouse.exceptions.PlantAlreadyExistsException;
 import com.greenhouse.greenhouse.exceptions.PlantNotFoundException;
 import com.greenhouse.greenhouse.mappers.PlantMapper;
-import com.greenhouse.greenhouse.models.Plant;
+import com.greenhouse.greenhouse.mappers.RequirementMapper;
+import com.greenhouse.greenhouse.models.*;
 import com.greenhouse.greenhouse.repositories.PlantRepository;
 import com.greenhouse.greenhouse.requests.PlantRequest;
 import com.greenhouse.greenhouse.responses.PlantResponse;
@@ -19,11 +20,14 @@ import java.util.stream.Collectors;
 public class PlantService {
     private final PlantRepository plantRepository;
     private final PlantMapper plantMapper;
+    private final RequirementMapper requirementMapper;
 
     @Autowired
-    public PlantService (PlantRepository plantRepository, PlantMapper plantMapper) {
+    public PlantService (PlantRepository plantRepository, PlantMapper plantMapper, RequirementMapper requirementMapper)
+    {
         this.plantRepository = plantRepository;
         this.plantMapper = plantMapper;
+        this.requirementMapper = requirementMapper;
     }
 
     public PlantResponse getPlantById (Long id) {
@@ -74,6 +78,45 @@ public class PlantService {
 
         plantRepository.save(plant);
         return plantMapper.toResponse(plant);
+    }
+
+    public boolean checkIfRequirementsAreMet (Long plantId, List<ParameterEntity> parameters) {
+        Plant plant = plantRepository.findById(plantId)
+                .orElseThrow(() -> new PlantNotFoundException("Plant not found"));
+        List<RequirementEntity> requirements = plant.getRequirementEntities();
+        requirements
+                .forEach(requirement -> {
+                    Optional<ParameterEntity> parameterOp = parameters.stream()
+                            .filter(parameter -> parameter.getName()
+                                    .equals(requirement.getName()))
+                            .findFirst();
+                    if (parameterOp.isPresent()) {
+                        ParameterEntity parameter = parameterOp.get();
+                        if (requirement instanceof ToggleRequirementEntity) {
+                            if (!(parameter instanceof ToggleParameterEntity)) {
+                                System.out.println("Mismatched types of parameters and requirements");
+                            } else {
+                                ToggleValue currentValue = ((ToggleParameterEntity) parameter).getCurrentValue();
+                                ToggleValue requiredValue = ((ToggleRequirementEntity) requirement).getLowerThreshold();
+                                if (currentValue != requiredValue) {
+                                    System.out.println("Requirements not met for plant " + plantId);
+                                }
+                            }
+                        }else{
+                            if(!(parameter instanceof ValueParameterEntity)){
+                                System.out.println("Mismatched types of parameters and requirements");
+                            }else{
+                                Double currentValue = ((ValueParameterEntity)parameter).getCurrentValue();
+                                Double lowerThreshold = ((ValueRequirementEntity)requirement).getLowerThreshold();
+                                Double upperThreshold = ((ValueRequirementEntity)requirement).getUpperThreshold();
+                                if(currentValue > upperThreshold || currentValue < lowerThreshold){
+                                    System.out.println("Requirements not met for plant " + plantId);
+                                }
+                            }
+                        }
+                    }
+                });
+        return true;
     }
 
 }
