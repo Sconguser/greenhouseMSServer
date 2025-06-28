@@ -36,17 +36,28 @@ public class ParameterService {
         Greenhouse greenhouse = greenhouseRepository.findById(greenhouseId)
                 .orElseThrow(
                         () -> new GreenhouseNotFoundException("Greenhouse with id " + greenhouseId + " was not found"));
+        if (parameterAlreadyExists(greenhouse.getParameters(), parameterDTO)) {
+            throw new IllegalArgumentException(
+                    "Parameter with name " + parameterDTO.getName() + " already exists in greenhouse " + greenhouseId);
+        }
         ParameterEntity entity = parameterMapper.toEntity(parameterDTO);
+        greenhouse.addParameter(entity);
         entity.setGreenhouse(greenhouse);
         entity.setZone(null);
         entity.setFlowerpot(null);
+        greenhouseRepository.save(greenhouse);
         ParameterEntity saved = parameterRepository.save(entity);
+
         return parameterMapper.toDto(saved);
     }
 
     public ParameterDTO addToZone (Long zoneId, ParameterDTO parameterDTO) {
         Zone zone = zoneRepository.findById(zoneId)
                 .orElseThrow(() -> new ZoneNotFoundException("Zone with id " + zoneId + " was not found"));
+        if (parameterAlreadyExists(zone.getParameters(), parameterDTO)) {
+            throw new IllegalArgumentException(
+                    "Parameter with name " + parameterDTO.getName() + " already exists in zone " + zoneId);
+        }
         ParameterEntity entity = parameterMapper.toEntity(parameterDTO);
         entity.setGreenhouse(null);
         entity.setZone(zone);
@@ -59,12 +70,22 @@ public class ParameterService {
         Flowerpot flowerpot = flowerpotRepository.findById(flowerpotId)
                 .orElseThrow(
                         () -> new FlowerpotNotFoundException("Flowerpoty with id " + flowerpotId + " was not found"));
+        if (parameterAlreadyExists(flowerpot.getParameters(), parameterDTO)) {
+            throw new IllegalArgumentException(
+                    "Parameter with name " + parameterDTO.getName() + " already exists in flowerpot " + flowerpotId);
+        }
         ParameterEntity entity = parameterMapper.toEntity(parameterDTO);
         entity.setGreenhouse(null);
         entity.setZone(null);
         entity.setFlowerpot(flowerpot);
         ParameterEntity saved = parameterRepository.save(entity);
         return parameterMapper.toDto(saved);
+    }
+
+    private boolean parameterAlreadyExists (List<ParameterEntity> parameterEntities, ParameterDTO parameterDTO) {
+        return parameterEntities.stream()
+                .anyMatch(entity -> entity.getName()
+                        .equals(parameterDTO.getName()));
     }
 
     public List<ParameterDTO> getGreenhouseParameters (Long greenhouseId) {
