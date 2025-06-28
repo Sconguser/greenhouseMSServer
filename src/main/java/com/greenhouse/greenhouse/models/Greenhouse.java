@@ -83,17 +83,21 @@ public class Greenhouse {
     }
 
     public void addParameter (ParameterEntity parameterEntity) {
-        parameterEntity.setGreenhouse(this);
         this.parameters.add(parameterEntity);
     }
 
     public void removeParameter (String name) {
-        this.parameters.removeIf(parameterEntity -> parameterEntity.name.equals(name));
+        this.parameters.removeIf(parameterEntity -> parameterEntity.getName()
+                .equals(name));
     }
 
     public List<ParameterEntity> getParameters () {
         return this.parameters;
     }
 
+    public void removeZone (Long zoneId) {
+        this.zones.removeIf(zone -> zone.getId()
+                .equals(zoneId));
+    }
 
 }

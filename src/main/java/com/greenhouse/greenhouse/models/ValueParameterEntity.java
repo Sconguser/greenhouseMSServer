@@ -4,12 +4,11 @@ import jakarta.persistence.Entity;
 
 @Entity
 public class ValueParameterEntity extends ParameterEntity {
-    Double currentValue;
-
-    Double requestedValue;
-    Double min;
-    Double max;
-    String unit;
+    private Double currentValue;
+    private Double requestedValue;
+    private Double min;
+    private Double max;
+    private String unit;
 
     public Double getCurrentValue () {
         return currentValue;

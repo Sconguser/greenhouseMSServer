@@ -17,7 +17,6 @@ public class Flowerpot {
     @OneToMany(mappedBy = "flowerpot", cascade = CascadeType.ALL)
     private List<ParameterEntity> parameters;
 
-
     @ManyToOne
     @JoinColumn(name = "zone_id")
     private Zone zone;
@@ -27,12 +26,12 @@ public class Flowerpot {
     }
 
     public void addParameter (ParameterEntity parameter) {
-        parameter.setFlowerpot(this);
         this.parameters.add(parameter);
     }
 
     public void deleteParameter (String name) {
-        this.parameters.removeIf(parameterEntity -> parameterEntity.name.equals(name));
+        this.parameters.removeIf(parameterEntity -> parameterEntity.getName()
+                .equals(name));
     }
 
     public List<ParameterEntity> getParameters () {
@@ -69,6 +68,11 @@ public class Flowerpot {
 
     public void addPlant (Plant plant) {
         this.plants.add(plant);
+    }
+
+    public void deletePlant (Long plantId) {
+        this.plants.removeIf(plant -> plant.getId()
+                .equals(plantId));
     }
 
     @Override

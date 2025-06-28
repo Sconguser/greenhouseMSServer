@@ -58,12 +58,11 @@ public class Zone {
     }
 
     public void addParameter (ParameterEntity parameterEntity) {
-        parameterEntity.setZone(this);
         this.parameters.add(parameterEntity);
     }
 
     public void deleteParameter (String name) {
-        this.parameters.removeIf(parameterEntity -> parameterEntity.name.equals(name));
+        this.parameters.removeIf(parameterEntity -> parameterEntity.getName().equals(name));
     }
 
     public List<ParameterEntity> getParameters () {

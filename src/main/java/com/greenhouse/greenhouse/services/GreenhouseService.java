@@ -52,6 +52,7 @@ public class GreenhouseService {
         Greenhouse greenhouse = greenhouseMapper.toEntity(request);
         Zone zone = new Zone();
         zone.setGreenhouse(greenhouse);
+        zone.setName("Zone 1");
         greenhouse.addZone(zone);
         Greenhouse greenhouseRepository = this.greenhouseRepository.save(greenhouse);
         return greenhouseMapper.toResponse(greenhouseRepository);
@@ -82,5 +83,11 @@ public class GreenhouseService {
         greenhouse.addZone(zone);
         greenhouseRepository.save(greenhouse);
         return zoneMapper.toResponse(zone);
+    }
+
+    public void removeZone (Long greenhouseId, Long zoneId) {
+        Greenhouse greenhouse = getGreenhouseEntity(greenhouseId);
+        greenhouse.removeZone(zoneId);
+        greenhouseRepository.save(greenhouse);
     }
 }

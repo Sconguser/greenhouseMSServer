@@ -29,18 +29,18 @@ public class ZoneController {
         return ResponseEntity.ok(zoneService.addFlowerpot(id, flowerpotRequest));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/flowerpots")
     public ResponseEntity<List<FlowerpotResponse>> getAllFlowerpots (@PathVariable Long zoneId) {
         return ResponseEntity.ok(zoneService.getAllFlowerpots(zoneId));
     }
 
-    @GetMapping("/{zoneId}/{flowerpotId}")
+    @GetMapping("/{zoneId}/flowerpots/{flowerpotId}")
     public ResponseEntity<FlowerpotResponse> getFlowerpot (@PathVariable Long zoneId, @PathVariable Long flowerpotId) {
         return ResponseEntity.ok(zoneService.getFlowerpot(zoneId, flowerpotId));
     }
 
 
-    @DeleteMapping("/{zoneId}/{flowerpotId}")
+    @DeleteMapping("/{zoneId}/deleteFlowerpot/{flowerpotId}")
     public ResponseEntity<?> deleteFlowerpot (@PathVariable Long zoneId, @PathVariable Long flowerpotId) {
         zoneService.deleteFlowerpot(zoneId, flowerpotId);
         return ResponseEntity.ok("Flowerpot " + flowerpotId + " was deleted from zone with id " + zoneId);

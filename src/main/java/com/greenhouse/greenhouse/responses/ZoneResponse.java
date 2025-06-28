@@ -9,24 +9,20 @@ public class ZoneResponse {
     private final Long id;
     private final String name;
 
-    private final List<FlowerpotResponse> flowerpots = new ArrayList();
+    private final List<FlowerpotResponse> flowerpots = new ArrayList<>();
 
-    private final List<ParameterDTO> currentParameters = new ArrayList<>();
-    private final List<ParameterDTO> requestedParameters = new ArrayList<>();
+    private final List<ParameterDTO> parameters = new ArrayList<>();
 
-    public ZoneResponse (Long id, String name, List<FlowerpotResponse> flowerpots, List<ParameterDTO> currentParameters,
-                         List<ParameterDTO> requestedParameters)
+    public ZoneResponse (Long id, String name, List<FlowerpotResponse> flowerpots,
+                         List<ParameterDTO> parameters)
     {
         this.id = id;
         this.name = name;
         if (flowerpots != null) {
             this.flowerpots.addAll(flowerpots);
         }
-        if (currentParameters != null) {
-            this.currentParameters.addAll(currentParameters);
-        }
-        if (requestedParameters != null) {
-            this.requestedParameters.addAll(requestedParameters);
+        if (parameters != null) {
+            this.parameters.addAll(parameters);
         }
 
     }
@@ -43,11 +39,7 @@ public class ZoneResponse {
         return flowerpots;
     }
 
-    public List<ParameterDTO> getCurrentParameters () {
-        return currentParameters;
-    }
-
-    public List<ParameterDTO> getRequestedParameters () {
-        return requestedParameters;
+    public List<ParameterDTO> getParameters () {
+        return parameters;
     }
 }

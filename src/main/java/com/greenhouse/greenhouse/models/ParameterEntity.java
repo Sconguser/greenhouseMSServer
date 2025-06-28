@@ -7,10 +7,10 @@ import jakarta.persistence.*;
 public class ParameterEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
-    String name;
-    boolean mutable;
+    private Long id;
 
+    private String name;
+    private boolean mutable;
     @ManyToOne
     @JoinColumn(name = "greenhouse_id")
     private Greenhouse greenhouse;
@@ -61,6 +61,14 @@ public class ParameterEntity {
 
     public void setFlowerpot (Flowerpot flowerpot) {
         this.flowerpot = flowerpot;
+    }
+
+    public Long getId () {
+        return id;
+    }
+
+    public void setId (Long id) {
+        this.id = id;
     }
 }
 

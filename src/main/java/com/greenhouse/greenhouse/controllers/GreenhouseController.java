@@ -51,9 +51,15 @@ public class GreenhouseController {
         return ResponseEntity.ok("Greenhouse " + greenhouseId + " deleted");
     }
 
-    @PostMapping("{id}/addZone")
+    @PostMapping("/{id}/addZone")
     public ResponseEntity<ZoneResponse> addZone (@PathVariable Long id, @Valid @RequestBody ZoneRequest zoneRequest) {
         return ResponseEntity.ok(greenhouseService.addZone(id, zoneRequest));
+    }
+
+    @DeleteMapping("/{greenhouseId}/deleteZone/{zoneId}")
+    public ResponseEntity<?> deleteZone (@PathVariable Long greenhouseId, @PathVariable Long zoneId) {
+        greenhouseService.removeZone(greenhouseId, zoneId);
+        return ResponseEntity.ok("Zone " + zoneId + " was deleted from greenhouse with id " + greenhouseId);
     }
 
     @PostMapping("/{id}/addParameter")

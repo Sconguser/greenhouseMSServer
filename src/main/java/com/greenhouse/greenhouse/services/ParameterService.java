@@ -41,13 +41,10 @@ public class ParameterService {
                     "Parameter with name " + parameterDTO.getName() + " already exists in greenhouse " + greenhouseId);
         }
         ParameterEntity entity = parameterMapper.toEntity(parameterDTO);
-        greenhouse.addParameter(entity);
         entity.setGreenhouse(greenhouse);
         entity.setZone(null);
         entity.setFlowerpot(null);
-        greenhouseRepository.save(greenhouse);
         ParameterEntity saved = parameterRepository.save(entity);
-
         return parameterMapper.toDto(saved);
     }
 
@@ -109,7 +106,7 @@ public class ParameterService {
                 .toList();
     }
 
-    public void deleteParameter (Long paramenterId) {
-        parameterRepository.deleteById(paramenterId);
+    public void deleteParameter (Long parameterId) {
+        parameterRepository.deleteById(parameterId);
     }
 }

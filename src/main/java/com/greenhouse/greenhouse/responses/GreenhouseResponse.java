@@ -12,11 +12,10 @@ public class GreenhouseResponse {
     private final String location;
     private final String ipAddress;
     private final List<ZoneResponse> zones = new ArrayList<>();
-    private final List<ParameterDTO> requestedParameters = new ArrayList<>();
-    private final List<ParameterDTO> currentParameters = new ArrayList<>();
+    private final List<ParameterDTO> parameters = new ArrayList<>();
 
     public GreenhouseResponse (String name, String location, String ipAddress, List<ZoneResponse> zones, Long id,
-                               List<ParameterDTO> requestedParameters, List<ParameterDTO> currentParameters)
+                               List<ParameterDTO> parameters)
     {
         this.name = name;
         this.location = location;
@@ -25,11 +24,9 @@ public class GreenhouseResponse {
         if (zones != null) {
             this.zones.addAll(zones);
         }
-        if (currentParameters != null) {
-            this.currentParameters.addAll(currentParameters);
-        }
-        if (requestedParameters != null) {
-            this.requestedParameters.addAll(requestedParameters);
+
+        if (parameters != null) {
+            this.parameters.addAll(parameters);
         }
     }
 
@@ -53,11 +50,8 @@ public class GreenhouseResponse {
         return id;
     }
 
-    public List<ParameterDTO> getRequestedParameters () {
-        return requestedParameters;
+    public List<ParameterDTO> getParameters () {
+        return parameters;
     }
 
-    public List<ParameterDTO> getCurrentParameters () {
-        return currentParameters;
-    }
 }

@@ -33,6 +33,14 @@ public class FlowerpotService {
         Plant plant = plantRepository.findById(plantId)
                 .orElseThrow(() -> new PlantNotFoundException("Plant with id " + plantId + " not found"));
         flowerpot.addPlant(plant);
+        flowerpotRepository.save(flowerpot);
+    }
+
+    public void deletePlant(Long flowerpotId, Long plantId){
+        Flowerpot flowerpot = flowerpotRepository.findById(flowerpotId)
+                .orElseThrow(() -> new FlowerpotNotFoundException("Flowerpot with id " + flowerpotId + " not found"));
+        flowerpot.deletePlant(plantId);
+        flowerpotRepository.save(flowerpot);
     }
 
     public FlowerpotResponse updateFlowerpot (Long id, FlowerpotRequest flowerpotRequest) {

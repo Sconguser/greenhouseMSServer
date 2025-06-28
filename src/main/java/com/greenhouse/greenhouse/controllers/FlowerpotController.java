@@ -29,11 +29,17 @@ public class FlowerpotController {
         return ResponseEntity.ok(flowerpotService.updateFlowerpot(id, request));
     }
 
-    @PostMapping("/{flowerpotId}/addPlant/{plantId}")
-    public ResponseEntity<?> addPlant (@PathVariable Long id, @PathVariable Long plantId)
+    @PutMapping("/{flowerpotId}/addPlant/{plantId}")
+    public ResponseEntity<?> addPlant (@PathVariable Long flowerpotId, @PathVariable Long plantId)
     {
-        flowerpotService.addPlant(id, plantId);
+        flowerpotService.addPlant(flowerpotId, plantId);
         return ResponseEntity.ok("Plant added");
+    }
+
+    @DeleteMapping("/{flowerpotId}/deletePlant/{plantId}")
+    public ResponseEntity<?> deletePlant(@PathVariable Long flowerpotId, @PathVariable Long plantId){
+        flowerpotService.deletePlant(flowerpotId, plantId);
+        return ResponseEntity.ok("Plant deleted");
     }
 
     @PostMapping("/{id}/addParameter")
