@@ -80,6 +80,8 @@ public class PlantService {
         return plantMapper.toResponse(plant);
     }
 
+
+    /// TODO: poprawić af
     public boolean checkIfRequirementsAreMet (Long plantId, List<ParameterEntity> parameters) {
         Plant plant = plantRepository.findById(plantId)
                 .orElseThrow(() -> new PlantNotFoundException("Plant not found"));
