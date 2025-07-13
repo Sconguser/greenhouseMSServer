@@ -1,17 +1,18 @@
 package com.greenhouse.greenhouse.dtos;
 
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.greenhouse.greenhouse.models.ParameterType;
 import com.greenhouse.greenhouse.models.Plant;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type", visible = true)
-@JsonSubTypes({@JsonSubTypes.Type(value = ValueRequirementDTO.class, name = "VALUE"), @JsonSubTypes.Type(value = ToggleParameterDTO.class, name = "TOGGLE")})
 public class RequirementDTO {
     private Long id;
     private String name;
-
     private Plant plant;
+    private Double lowerThreshold;
+    private Double upperThreshold;
+    private String unit;
+
+    private ParameterType type;
 
     public Plant getPlant () {
         return plant;
@@ -35,5 +36,37 @@ public class RequirementDTO {
 
     public void setId (Long id) {
         this.id = id;
+    }
+
+    public Double getLowerThreshold () {
+        return lowerThreshold;
+    }
+
+    public void setLowerThreshold (Double lowerThreshold) {
+        this.lowerThreshold = lowerThreshold;
+    }
+
+    public Double getUpperThreshold () {
+        return upperThreshold;
+    }
+
+    public void setUpperThreshold (Double upperThreshold) {
+        this.upperThreshold = upperThreshold;
+    }
+
+    public String getUnit () {
+        return unit;
+    }
+
+    public void setUnit (String unit) {
+        this.unit = unit;
+    }
+
+    public ParameterType getType () {
+        return type;
+    }
+
+    public void setType (ParameterType type) {
+        this.type = type;
     }
 }

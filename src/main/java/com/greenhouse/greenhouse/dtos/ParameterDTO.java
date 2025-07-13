@@ -1,24 +1,18 @@
 package com.greenhouse.greenhouse.dtos;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.greenhouse.greenhouse.models.Flowerpot;
-import com.greenhouse.greenhouse.models.Greenhouse;
-import com.greenhouse.greenhouse.models.Zone;
+import com.greenhouse.greenhouse.models.ParameterType;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type", visible = true)
-@JsonSubTypes({@JsonSubTypes.Type(value = ValueParameterDTO.class, name = "VALUE"), @JsonSubTypes.Type(value = ToggleParameterDTO.class, name = "TOGGLE"),})
 public class ParameterDTO {
     private Long id;
-
     private String name;
     private boolean mutable;
+    private Double currentValue;
+    private Double requestedValue;
+    private Double min;
+    private Double max;
+    private String unit;
+    private ParameterType type;
 
-//    private String type;
-
-//    private Greenhouse greenhouse;
-//    private Zone zone;
-//    private Flowerpot flowerpot;
     public Long getId () {
         return id;
     }
@@ -43,36 +37,51 @@ public class ParameterDTO {
         this.mutable = mutable;
     }
 
-//    public String getType () {
-//        return type;
-//    }
-//
-//    public void setType (String type) {
-//        this.type = type;
-//    }
+    public Double getCurrentValue () {
+        return currentValue;
+    }
 
-//    public Greenhouse getGreenhouse () {
-//        return greenhouse;
-//    }
-//
-//    public void setGreenhouse (Greenhouse greenhouse) {
-//        this.greenhouse = greenhouse;
-//    }
-//
-//    public Zone getZone () {
-//        return zone;
-//    }
-//
-//    public void setZone (Zone zone) {
-//        this.zone = zone;
-//    }
-//
-//    public Flowerpot getFlowerpot () {
-//        return flowerpot;
-//    }
-//
-//    public void setFlowerpot (Flowerpot flowerpot) {
-//        this.flowerpot = flowerpot;
-//    }
+    public void setCurrentValue (Double currentValue) {
+        this.currentValue = currentValue;
+    }
 
+    public Double getRequestedValue () {
+        return requestedValue;
+    }
+
+    public void setRequestedValue (Double requestedValue) {
+        this.requestedValue = requestedValue;
+    }
+
+    public Double getMin () {
+        return min;
+    }
+
+    public void setMin (Double min) {
+        this.min = min;
+    }
+
+    public Double getMax () {
+        return max;
+    }
+
+    public void setMax (Double max) {
+        this.max = max;
+    }
+
+    public String getUnit () {
+        return unit;
+    }
+
+    public void setUnit (String unit) {
+        this.unit = unit;
+    }
+
+    public ParameterType getType () {
+        return type;
+    }
+
+    public void setType (ParameterType type) {
+        this.type = type;
+    }
 }

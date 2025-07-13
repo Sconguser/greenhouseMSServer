@@ -1,7 +1,6 @@
 package com.greenhouse.greenhouse.mappers;
 
 import com.greenhouse.greenhouse.dtos.ParameterDTO;
-import com.greenhouse.greenhouse.dtos.ToggleParameterDTO;
 import com.greenhouse.greenhouse.dtos.ValueParameterDTO;
 import com.greenhouse.greenhouse.models.ParameterEntity;
 import com.greenhouse.greenhouse.models.ToggleParameterEntity;
