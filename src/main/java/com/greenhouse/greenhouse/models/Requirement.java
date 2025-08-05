@@ -1,19 +1,13 @@
 package com.greenhouse.greenhouse.models;
 
-public abstract class Requirement<T> {
-    String name;
+public class Requirement {
+    private String name;
+    private Double lowerThreshold;
+    private Double upperThreshold;
+    private String unit;
+    private ParameterType type;
+//    private Plant plant;
 
-    protected Requirement (String name) {
-        this.name = name;
-    }
-
-    public abstract T getLowerThreshold ();
-
-    public abstract void setLowerThreshold (T lowerThreshold);
-
-    public abstract T getUpperThreshold ();
-
-    public abstract void setUpperThreshold (T upperThreshold);
 
     public String getName () {
         return name;
@@ -23,5 +17,43 @@ public abstract class Requirement<T> {
         this.name = name;
     }
 
-    public abstract String getDescription ();
+    public Double getLowerThreshold () {
+        return lowerThreshold;
+    }
+
+    public void setLowerThreshold (Double lowerThreshold) {
+        this.lowerThreshold = lowerThreshold;
+    }
+
+    public Double getUpperThreshold () {
+        return upperThreshold;
+    }
+
+    public void setUpperThreshold (Double upperThreshold) {
+        this.upperThreshold = upperThreshold;
+    }
+
+    public String getUnit () {
+        return unit;
+    }
+
+    public void setUnit (String unit) {
+        this.unit = unit;
+    }
+
+    public ParameterType getType () {
+        return type;
+    }
+
+    public void setType (ParameterType type) {
+        this.type = type;
+    }
+
+//    public Plant getPlant () {
+//        return plant;
+//    }
+//
+//    public void setPlant (Plant plant) {
+//        this.plant = plant;
+//    }
 }

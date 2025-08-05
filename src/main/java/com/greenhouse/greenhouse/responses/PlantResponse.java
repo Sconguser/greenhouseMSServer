@@ -1,32 +1,26 @@
 package com.greenhouse.greenhouse.responses;
 
+import com.greenhouse.greenhouse.dtos.RequirementDTO;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class PlantResponse {
     private Long id;
     private String name;
     private String description;
-
-    private int minTemperature;
-    private int maxTemperature;
-
-    private int minHumidity;
-    private int maxHumidity;
-
-    private int minSoilHumidity;
-
-    private int maxSoilHumidity;
     private byte[] imageData;
+    private final List<RequirementDTO> requirements = new ArrayList<>();
 
-    public PlantResponse (Long id, String name, String description, int minTemperature, int maxTemperature,
-                          int minHumidity, int maxHumidity, byte[] imageData)
+    public PlantResponse (Long id, String name, String description, byte[] imageData, List<RequirementDTO> requirements)
     {
         this.id = id;
         this.name = name;
         this.description = description;
-        this.minTemperature = minTemperature;
-        this.maxTemperature = maxTemperature;
-        this.minHumidity = minHumidity;
-        this.maxHumidity = maxHumidity;
         this.imageData = imageData;
+        if (requirements != null) {
+            this.requirements.addAll(requirements);
+        }
     }
 
 
@@ -54,30 +48,6 @@ public class PlantResponse {
         this.description = description;
     }
 
-    public int getMaxTemperature () {
-        return maxTemperature;
-    }
-
-    public void setMaxTemperature (int maxTemperature) {
-        this.maxTemperature = maxTemperature;
-    }
-
-    public int getMinHumidity () {
-        return minHumidity;
-    }
-
-    public void setMinHumidity (int minHumidity) {
-        this.minHumidity = minHumidity;
-    }
-
-    public int getMaxHumidity () {
-        return maxHumidity;
-    }
-
-    public void setMaxHumidity (int maxHumidity) {
-        this.maxHumidity = maxHumidity;
-    }
-
     public byte[] getImageData () {
         return imageData;
     }
@@ -86,27 +56,11 @@ public class PlantResponse {
         this.imageData = imageData;
     }
 
-    public int getMinTemperature () {
-        return minTemperature;
+    public List<RequirementDTO> getRequirements () {
+        return requirements;
     }
 
-    public void setMinTemperature (int minTemperature) {
-        this.minTemperature = minTemperature;
-    }
-
-    public int getMinSoilHumidity () {
-        return minSoilHumidity;
-    }
-
-    public void setMinSoilHumidity (int minSoilHumidity) {
-        this.minSoilHumidity = minSoilHumidity;
-    }
-
-    public int getMaxSoilHumidity () {
-        return maxSoilHumidity;
-    }
-
-    public void setMaxSoilHumidity (int maxSoilHumidity) {
-        this.maxSoilHumidity = maxSoilHumidity;
+    public void addRequirement (RequirementDTO requirementDTO) {
+        this.requirements.add(requirementDTO);
     }
 }

@@ -5,6 +5,7 @@ import com.greenhouse.greenhouse.exceptions.ZoneNotFoundException;
 import com.greenhouse.greenhouse.mappers.FlowerpotMapper;
 import com.greenhouse.greenhouse.mappers.ZoneMapper;
 import com.greenhouse.greenhouse.models.Flowerpot;
+import com.greenhouse.greenhouse.models.ParameterEntity;
 import com.greenhouse.greenhouse.models.Zone;
 import com.greenhouse.greenhouse.repositories.FlowerpotRepository;
 import com.greenhouse.greenhouse.repositories.ZoneRepository;
@@ -35,8 +36,11 @@ public class ZoneService {
     public FlowerpotResponse addFlowerpot (Long zoneId, FlowerpotRequest flowerpotRequest) {
         Zone zone = getZone(zoneId);
         Flowerpot flowerpot = flowerpotMapper.toEntity(flowerpotRequest);
-        zone.addFlowerpot(flowerpot);
-        zoneRepository.save(zone);
+        flowerpot.setZone(zone);
+        flowerpotRepository.save(flowerpot);
+        for (ParameterEntity parameterEntity : flowerpot.getParameters()) {
+            parameterEntity.setFlowerpot(flowerpot);
+        }
         return flowerpotMapper.toResponse(flowerpot);
     }
 

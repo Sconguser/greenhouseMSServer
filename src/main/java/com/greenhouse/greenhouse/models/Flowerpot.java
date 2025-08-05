@@ -14,7 +14,7 @@ public class Flowerpot {
     @JoinTable(name = "flowerpot_plant", joinColumns = @JoinColumn(name = "flowerpot_id"), inverseJoinColumns = @JoinColumn(name = "plant_id"))
     private List<Plant> plants;
 
-    @OneToMany(mappedBy = "flowerpot", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "flowerpot", cascade = CascadeType.MERGE)
     private List<ParameterEntity> parameters;
 
     @ManyToOne

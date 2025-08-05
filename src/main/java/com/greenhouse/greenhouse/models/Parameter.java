@@ -4,17 +4,14 @@ package com.greenhouse.greenhouse.models;
 public class Parameter {
     private String name;
     private boolean mutable = true;
-
     private Double currentValue;
-
     private Double requestedValue;
     private Double min;
     private Double max;
     private String unit;
     private ParameterType parameterType;
-    protected Parameter (String name) {
-        this.name = name;
-    }
+
+
 
     public String getName () {
         return name;

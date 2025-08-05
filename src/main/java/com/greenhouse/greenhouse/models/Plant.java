@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -15,7 +16,7 @@ public class Plant {
     private String description;
 
     @OneToMany(mappedBy = "plant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RequirementEntity> requirementEntities;
+    private final List<RequirementEntity> requirements = new ArrayList<>();
 
     @Lob
     @Column
@@ -28,17 +29,18 @@ public class Plant {
     public Plant () {
     }
 
-    public List<RequirementEntity> getRequirementEntities () {
-        return requirementEntities;
+    public List<RequirementEntity> getRequirements () {
+        return requirements;
     }
 
-    public void addRequirementEntity (RequirementEntity requirementEntity) {
-        requirementEntity.setPlant(this);
-        this.requirementEntities.add(requirementEntity);
+    public void addRequirement (RequirementEntity requirement) {
+        requirement.setPlant(this);
+        this.requirements.add(requirement);
     }
 
-    public void removeRequirementEntity (String name) {
-        requirementEntities.removeIf(entity -> entity.name.equals(name));
+    public void removeRequirement (String name) {
+        requirements.removeIf(entity -> entity.getName()
+                .equals(name));
     }
 
 

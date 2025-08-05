@@ -3,6 +3,7 @@ package com.greenhouse.greenhouse.services;
 import com.greenhouse.greenhouse.dtos.ParameterDTO;
 import com.greenhouse.greenhouse.exceptions.FlowerpotNotFoundException;
 import com.greenhouse.greenhouse.exceptions.GreenhouseNotFoundException;
+import com.greenhouse.greenhouse.exceptions.ParameterNotFoundException;
 import com.greenhouse.greenhouse.exceptions.ZoneNotFoundException;
 import com.greenhouse.greenhouse.mappers.ParameterMapper;
 import com.greenhouse.greenhouse.models.Flowerpot;
@@ -16,6 +17,7 @@ import com.greenhouse.greenhouse.repositories.ZoneRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -103,6 +105,21 @@ public class ParameterService {
         return parameterRepository.findByFlowerpotId(flowerpotId)
                 .stream()
                 .map(parameterMapper::toDto)
+                .toList();
+    }
+
+    public List<ParameterDTO> updateParameters (List<ParameterDTO> parameterDTOS) {
+        List<ParameterEntity> updatedParameters = new ArrayList<>();
+        parameterDTOS.forEach(parameterDto -> {
+            ParameterEntity parameterEntity = parameterRepository.findById(parameterDto.getId())
+                    .orElseThrow(() -> new ParameterNotFoundException("Parameter was not found"));
+            if (parameterDto.getRequestedValue() != null) {
+                parameterEntity.setRequestedValue(parameterDto.getRequestedValue());
+            }
+            updatedParameters.add(parameterRepository.save(parameterEntity));
+        });
+        return updatedParameters.stream()
+                .map((parameter) -> parameterMapper.toDto(parameter))
                 .toList();
     }
 

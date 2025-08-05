@@ -11,7 +11,7 @@ public class ParameterDTO {
     private Double min;
     private Double max;
     private String unit;
-    private ParameterType type;
+    private ParameterType parameterType;
 
     public Long getId () {
         return id;
@@ -77,11 +77,11 @@ public class ParameterDTO {
         this.unit = unit;
     }
 
-    public ParameterType getType () {
-        return type;
+    public ParameterType getParameterType () {
+        return parameterType;
     }
 
-    public void setType (ParameterType type) {
-        this.type = type;
+    public void setParameterType (ParameterType parameterType) {
+        this.parameterType = parameterType;
     }
 }

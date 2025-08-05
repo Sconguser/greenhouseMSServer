@@ -18,7 +18,7 @@ public class Zone {
     @JoinColumn(name = "greenhouse_id")
     private Greenhouse greenhouse;
 
-    @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "zone", cascade = CascadeType.MERGE)
     private List<ParameterEntity> parameters;
 
     public Zone () {

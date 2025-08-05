@@ -2,25 +2,23 @@ package com.greenhouse.greenhouse.dtos;
 
 
 import com.greenhouse.greenhouse.models.ParameterType;
-import com.greenhouse.greenhouse.models.Plant;
 
 public class RequirementDTO {
     private Long id;
     private String name;
-    private Plant plant;
     private Double lowerThreshold;
     private Double upperThreshold;
     private String unit;
 
     private ParameterType type;
 
-    public Plant getPlant () {
-        return plant;
-    }
+//    public Plant getPlant () {
+//        return plant;
+//    }
 
-    public void setPlant (Plant plant) {
-        this.plant = plant;
-    }
+//    public void setPlant (Plant plant) {
+//        this.plant = plant;
+//    }
 
     public String getName () {
         return name;

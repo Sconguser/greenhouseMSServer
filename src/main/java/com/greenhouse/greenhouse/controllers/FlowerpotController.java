@@ -54,4 +54,5 @@ public class FlowerpotController {
         return ResponseEntity.ok(parameterService.getFlowerpotParameters(id));
     }
 
+
 }

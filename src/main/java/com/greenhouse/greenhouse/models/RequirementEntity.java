@@ -12,10 +12,11 @@ public class RequirementEntity {
     private Double upperThreshold;
     private String unit;
     private ParameterType type;
+
     @ManyToOne
     @JoinColumn(name = "plant_id")
     private Plant plant;
-    
+
     public Plant getPlant () {
         return this.plant;
     }

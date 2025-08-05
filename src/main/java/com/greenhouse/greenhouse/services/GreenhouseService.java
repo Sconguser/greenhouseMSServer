@@ -2,11 +2,13 @@ package com.greenhouse.greenhouse.services;
 
 import com.greenhouse.greenhouse.exceptions.GreenhouseNotFoundException;
 import com.greenhouse.greenhouse.mappers.GreenhouseMapper;
+import com.greenhouse.greenhouse.mappers.ParameterMapper;
 import com.greenhouse.greenhouse.mappers.ZoneMapper;
 import com.greenhouse.greenhouse.models.Greenhouse;
+import com.greenhouse.greenhouse.models.ParameterEntity;
 import com.greenhouse.greenhouse.models.Zone;
 import com.greenhouse.greenhouse.repositories.GreenhouseRepository;
-import com.greenhouse.greenhouse.repositories.PlantRepository;
+import com.greenhouse.greenhouse.repositories.ZoneRepository;
 import com.greenhouse.greenhouse.requests.GreenhouseRequest;
 import com.greenhouse.greenhouse.requests.ZoneRequest;
 import com.greenhouse.greenhouse.responses.GreenhouseResponse;
@@ -21,14 +23,17 @@ public class GreenhouseService {
     private final GreenhouseRepository greenhouseRepository;
     private final GreenhouseMapper greenhouseMapper;
     private final ZoneMapper zoneMapper;
-
+    private final ZoneRepository zoneRepository;
+    private final ParameterMapper parameterMapper;
     @Autowired
-    public GreenhouseService (GreenhouseRepository greenhouseRepository, PlantRepository plantRepository,
-                              GreenhouseMapper greenhouseMapper, ZoneMapper zoneMapper)
+    public GreenhouseService (GreenhouseRepository greenhouseRepository, GreenhouseMapper greenhouseMapper,
+                              ZoneMapper zoneMapper, ZoneRepository zoneRepository, ParameterMapper parameterMapper)
     {
         this.greenhouseRepository = greenhouseRepository;
         this.greenhouseMapper = greenhouseMapper;
         this.zoneMapper = zoneMapper;
+        this.zoneRepository = zoneRepository;
+        this.parameterMapper = parameterMapper;
     }
 
     public GreenhouseResponse getGreenhouse (Long id) {
@@ -54,6 +59,9 @@ public class GreenhouseService {
         zone.setGreenhouse(greenhouse);
         zone.setName("Zone 1");
         greenhouse.addZone(zone);
+        for (ParameterEntity parameterEntity : greenhouse.getParameters()) {
+            parameterEntity.setGreenhouse(greenhouse);
+        }
         Greenhouse greenhouseRepository = this.greenhouseRepository.save(greenhouse);
         return greenhouseMapper.toResponse(greenhouseRepository);
     }
@@ -80,8 +88,13 @@ public class GreenhouseService {
     public ZoneResponse addZone (Long id, ZoneRequest zoneRequest) {
         Greenhouse greenhouse = getGreenhouseEntity(id);
         Zone zone = zoneMapper.toEntity(zoneRequest);
-        greenhouse.addZone(zone);
-        greenhouseRepository.save(greenhouse);
+//        greenhouse.addZone(zone);
+        zone.setGreenhouse(greenhouse);
+//        greenhouseRepository.save(greenhouse);
+        zoneRepository.save(zone);
+        for (ParameterEntity parameterEntity : zone.getParameters()) {
+            parameterEntity.setZone(zone);
+        }
         return zoneMapper.toResponse(zone);
     }
 

@@ -85,38 +85,13 @@ public class PlantService {
     public boolean checkIfRequirementsAreMet (Long plantId, List<ParameterEntity> parameters) {
         Plant plant = plantRepository.findById(plantId)
                 .orElseThrow(() -> new PlantNotFoundException("Plant not found"));
-        List<RequirementEntity> requirements = plant.getRequirementEntities();
+        List<RequirementEntity> requirements = plant.getRequirements();
         requirements
                 .forEach(requirement -> {
                     Optional<ParameterEntity> parameterOp = parameters.stream()
                             .filter(parameter -> parameter.getName()
                                     .equals(requirement.getName()))
                             .findFirst();
-                    if (parameterOp.isPresent()) {
-                        ParameterEntity parameter = parameterOp.get();
-                        if (requirement instanceof ToggleRequirementEntity) {
-                            if (!(parameter instanceof ToggleParameterEntity)) {
-                                System.out.println("Mismatched types of parameters and requirements");
-                            } else {
-                                ToggleValue currentValue = ((ToggleParameterEntity) parameter).getCurrentValue();
-                                ToggleValue requiredValue = ((ToggleRequirementEntity) requirement).getLowerThreshold();
-                                if (currentValue != requiredValue) {
-                                    System.out.println("Requirements not met for plant " + plantId);
-                                }
-                            }
-                        }else{
-                            if(!(parameter instanceof ValueParameterEntity)){
-                                System.out.println("Mismatched types of parameters and requirements");
-                            }else{
-                                Double currentValue = ((ValueParameterEntity)parameter).getCurrentValue();
-                                Double lowerThreshold = ((ValueRequirementEntity)requirement).getLowerThreshold();
-                                Double upperThreshold = ((ValueRequirementEntity)requirement).getUpperThreshold();
-                                if(currentValue > upperThreshold || currentValue < lowerThreshold){
-                                    System.out.println("Requirements not met for plant " + plantId);
-                                }
-                            }
-                        }
-                    }
                 });
         return true;
     }
