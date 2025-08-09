@@ -1,5 +1,6 @@
 package com.greenhouse.greenhouse.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ public class Greenhouse {
     private Long id;
 
     @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<Zone> zones = new ArrayList<>();
 
     private String name;
@@ -21,6 +23,7 @@ public class Greenhouse {
     private Status status = Status.OFF;
 
     @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
+    @JsonManagedReference("greenhouse-params")
     private final List<ParameterEntity> parameters = new ArrayList<>();
 
     public Greenhouse () {

@@ -1,5 +1,6 @@
 package com.greenhouse.greenhouse.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greenhouse.greenhouse.dtos.ParameterDTO;
 import com.greenhouse.greenhouse.exceptions.FlowerpotNotFoundException;
 import com.greenhouse.greenhouse.exceptions.GreenhouseNotFoundException;
@@ -32,7 +33,10 @@ public class ParameterService {
     private ZoneRepository zoneRepository;
     @Autowired
     private FlowerpotRepository flowerpotRepository;
-
+    @Autowired
+    private MqttService mqttService;
+    @Autowired
+    private GreenhouseService greenhouseService;
 
     public ParameterDTO addToGreenhouse (Long greenhouseId, ParameterDTO parameterDTO) {
         Greenhouse greenhouse = greenhouseRepository.findById(greenhouseId)
@@ -118,9 +122,52 @@ public class ParameterService {
             }
             updatedParameters.add(parameterRepository.save(parameterEntity));
         });
-        return updatedParameters.stream()
+        List<ParameterDTO> returnParameters = updatedParameters.stream()
                 .map((parameter) -> parameterMapper.toDto(parameter))
                 .toList();
+        Long greenhouseId = findGreenhouseId(updatedParameters);
+        if (greenhouseId != null) {
+            Greenhouse greenhouse = greenhouseRepository.findById(greenhouseId)
+                    .orElseThrow(() -> new IllegalStateException("Parameters do not belong to any greenhouse"));
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+//                String jsonPayload = objectMapper.writeValueAsString(returnParameters);
+//                mqttService.sendCommand(greenhouse.getIpAddress(), jsonPayload);
+                String jsonPayload = objectMapper.writeValueAsString(greenhouse);
+                mqttService.sendCommand(greenhouse.getIpAddress(), jsonPayload);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        return returnParameters;
+    }
+
+    private Long findGreenhouseId (List<ParameterEntity> parameterEntities) {
+        if (parameterEntities.get(0)
+                .getGreenhouse() != null)
+        {
+            return parameterEntities.get(0)
+                    .getGreenhouse()
+                    .getId();
+        }
+        if (parameterEntities.get(0)
+                .getZone() != null)
+        {
+            return parameterEntities.get(0)
+                    .getZone()
+                    .getGreenhouse()
+                    .getId();
+        }
+        if (parameterEntities.get(0)
+                .getFlowerpot() != null)
+        {
+            return parameterEntities.get(0)
+                    .getFlowerpot()
+                    .getZone()
+                    .getGreenhouse()
+                    .getId();
+        }
+        return null;
     }
 
     public void deleteParameter (Long parameterId) {

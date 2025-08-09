@@ -1,5 +1,6 @@
 package com.greenhouse.greenhouse.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -20,13 +21,16 @@ public class ParameterEntity {
     private ParameterType parameterType;
     @ManyToOne
     @JoinColumn(name = "greenhouse_id")
+    @JsonBackReference("greenhouse-params")
     private Greenhouse greenhouse;
     @ManyToOne
     @JoinColumn(name = "zone_id")
+    @JsonBackReference("zone-params")
     private Zone zone;
 
     @ManyToOne
     @JoinColumn(name = "flowerpot_id")
+    @JsonBackReference("flowerpot-params")
     private Flowerpot flowerpot;
 
     public String getName () {

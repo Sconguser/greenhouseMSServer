@@ -1,5 +1,7 @@
 package com.greenhouse.greenhouse.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -12,13 +14,16 @@ public class Zone {
 
     private String name;
     @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<Flowerpot> flowerpots;
 
     @ManyToOne
     @JoinColumn(name = "greenhouse_id")
+    @JsonBackReference
     private Greenhouse greenhouse;
 
     @OneToMany(mappedBy = "zone", cascade = CascadeType.MERGE)
+    @JsonManagedReference("zone-params")
     private List<ParameterEntity> parameters;
 
     public Zone () {

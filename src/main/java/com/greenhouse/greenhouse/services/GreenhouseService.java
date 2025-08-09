@@ -1,5 +1,6 @@
 package com.greenhouse.greenhouse.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greenhouse.greenhouse.exceptions.GreenhouseNotFoundException;
 import com.greenhouse.greenhouse.mappers.GreenhouseMapper;
 import com.greenhouse.greenhouse.mappers.ParameterMapper;
@@ -25,15 +26,18 @@ public class GreenhouseService {
     private final ZoneMapper zoneMapper;
     private final ZoneRepository zoneRepository;
     private final ParameterMapper parameterMapper;
+    private final MqttPublisher mqttService;
+
     @Autowired
     public GreenhouseService (GreenhouseRepository greenhouseRepository, GreenhouseMapper greenhouseMapper,
-                              ZoneMapper zoneMapper, ZoneRepository zoneRepository, ParameterMapper parameterMapper)
+                              ZoneMapper zoneMapper, ZoneRepository zoneRepository, ParameterMapper parameterMapper, MqttPublisher mqttPublisher)
     {
         this.greenhouseRepository = greenhouseRepository;
         this.greenhouseMapper = greenhouseMapper;
         this.zoneMapper = zoneMapper;
         this.zoneRepository = zoneRepository;
         this.parameterMapper = parameterMapper;
+        this.mqttService = mqttPublisher;
     }
 
     public GreenhouseResponse getGreenhouse (Long id) {
@@ -77,8 +81,12 @@ public class GreenhouseService {
         if (request.getLocation() != null) {
             greenhouse.setLocation(request.getLocation());
         }
-        greenhouseRepository.save(greenhouse);
+        updateGreenhouse(greenhouse);
         return greenhouseMapper.toResponse(greenhouse);
+    }
+
+    public void updateGreenhouse(Greenhouse greenhouse){
+        greenhouseRepository.save(greenhouse);
     }
 
     public void deleteGreenhouse (Long id) {
@@ -102,5 +110,17 @@ public class GreenhouseService {
         Greenhouse greenhouse = getGreenhouseEntity(greenhouseId);
         greenhouse.removeZone(zoneId);
         greenhouseRepository.save(greenhouse);
+    }
+
+    public void sendGreenhouseDataToGreenhouse(Long greenhouseId){
+        Greenhouse greenhouse = getGreenhouseEntity(greenhouseId);
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String jsonPayload = objectMapper.writeValueAsString(greenhouse);
+            mqttService.sendCommand(greenhouse.getIpAddress(), jsonPayload);
+        }
+        catch (Exception e){
+            System.out.println(e);
+        }
     }
 }
