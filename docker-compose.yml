@@ -1,0 +1,87 @@
+services:
+  db:
+    image: postgres:${POSTGRES_TAG}
+    container_name: ${COMPOSE_PROJECT_NAME}-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    # Brak "ports" — baza dostępna tylko w sieci kontenerów
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME}-app
+    depends_on:
+      db:
+        condition: service_healthy
+      mqtt:
+        condition: service_started
+    environment:
+      # Baza (Spring)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+
+      # JWT
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+
+#       Firebase – wskaż ścieżkę w kontenerze; plik montowany poniżej
+#       Jeśli aplikacja używa GOOGLE_APPLICATION_CREDENTIALS, odkomentuj tę linię i usuń FIREBASE_SETTINGS.
+
+      GOOGLE_APPLICATION_CREDENTIALS: /app/config/firebase.json
+#      FIREBASE_SETTINGS: /app/config/firebase.json
+
+      # MQTT
+      MQTT_BROKER: ${MQTT_BROKER}
+      MQTT_CLIENT_ID: ${MQTT_CLIENT_ID}
+      MQTT_USERNAME: ${MQTT_USERNAME}
+      MQTT_PASSWORD: ${MQTT_PASSWORD}
+
+      # JVM/Spring profile (opcjonalnie)
+      JAVA_OPTS: ${JAVA_OPTS}
+      # SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      # SERVER_PORT: ${SERVER_PORT}
+
+    volumes:
+      # Zamontuj poświadczenia Firebase jako plik tylko-do-odczytu
+      - ./secrets/firebase.json:/app/config/firebase.json:ro
+
+    ports:
+      - "${APP_PORT}:8080"
+    networks:
+      - appnet
+    restart: unless-stopped
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: ${COMPOSE_PROJECT_NAME}-mqtt
+    volumes:
+      - mosquitto_data:/mosquitto
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    networks:
+      - appnet
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+
+volumes:
+  pgdata:
+  mosquitto_data:
+
+networks:
+  appnet:
+    driver: bridge

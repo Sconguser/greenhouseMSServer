@@ -1,0 +1,25 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <mirrors>
+        <mirror>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <mirrorOf>central</mirrorOf>
+        </mirror>
+    </mirrors>
+    <profiles>
+        <profile>
+            <id>timeouts-and-retries</id>
+            <properties>
+                <!-- HTTP connect/read timeouts (ms) -->
+                <maven.wagon.http.connectionTimeout>600000</maven.wagon.http.connectionTimeout>
+                <maven.wagon.http.readTimeout>600000</maven.wagon.http.readTimeout>
+                <!-- Liczba ponowień pobrań -->
+                <maven.wagon.http.retryHandler.count>5</maven.wagon.http.retryHandler.count>
+            </properties>
+        </profile>
+    </profiles>
+    <activeProfiles>
+        <activeProfile>timeouts-and-retries</activeProfile>
+    </activeProfiles>
+</settings>

@@ -100,8 +100,10 @@ public class GreenhouseService {
         zone.setGreenhouse(greenhouse);
 //        greenhouseRepository.save(greenhouse);
         zoneRepository.save(zone);
-        for (ParameterEntity parameterEntity : zone.getParameters()) {
-            parameterEntity.setZone(zone);
+        if (zone.getParameters() != null) {
+            for (ParameterEntity parameterEntity : zone.getParameters()) {
+                parameterEntity.setZone(zone);
+            }
         }
         return zoneMapper.toResponse(zone);
     }
