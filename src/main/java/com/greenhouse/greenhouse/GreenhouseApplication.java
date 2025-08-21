@@ -4,11 +4,9 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 
@@ -20,17 +18,30 @@ public class GreenhouseApplication {
 		SpringApplication.run(GreenhouseApplication.class, args);
 	}
 
-	@Value("${firebase.settings}")
-	private String firebaseSettings;
+//	@Value("${firebase.settings}")
+//	private String firebaseSettings;
 
 	@Bean
 	FirebaseMessaging firebaseMessaging () throws IOException {
-		GoogleCredentials googleCredentials = GoogleCredentials.fromStream(
-				new ClassPathResource(firebaseSettings).getInputStream());
+		GoogleCredentials googleCredentials = GoogleCredentials.getApplicationDefault();
 		FirebaseOptions firebaseOptions = FirebaseOptions.builder()
 				.setCredentials(googleCredentials)
 				.build();
-		FirebaseApp app = FirebaseApp.initializeApp(firebaseOptions, "Greenhouse@Makerspace");
+
+		FirebaseApp app;
+		if (FirebaseApp.getApps()
+				.isEmpty())
+		{
+			app = FirebaseApp.initializeApp(firebaseOptions, "Greenhouse@Makerspace");
+		} else {
+			// Spróbuj pobrać po nazwie; jeśli brak, zainicjalizuj
+			try {
+				app = FirebaseApp.getInstance("Greenhouse@Makerspace");
+			} catch (IllegalStateException | IllegalArgumentException ex) {
+				app = FirebaseApp.initializeApp(firebaseOptions, "Greenhouse@Makerspace");
+			}
+		}
 		return FirebaseMessaging.getInstance(app);
 	}
+
 }

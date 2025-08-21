@@ -38,8 +38,10 @@ public class ZoneService {
         Flowerpot flowerpot = flowerpotMapper.toEntity(flowerpotRequest);
         flowerpot.setZone(zone);
         flowerpotRepository.save(flowerpot);
-        for (ParameterEntity parameterEntity : flowerpot.getParameters()) {
-            parameterEntity.setFlowerpot(flowerpot);
+        if (flowerpot.getParameters() != null) {
+            for (ParameterEntity parameterEntity : flowerpot.getParameters()) {
+                parameterEntity.setFlowerpot(flowerpot);
+            }
         }
         return flowerpotMapper.toResponse(flowerpot);
     }
