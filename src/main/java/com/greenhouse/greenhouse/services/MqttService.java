@@ -29,10 +29,11 @@ public class MqttService implements MqttCallback, MqttPublisher {
             options.setUserName(username);
             options.setPassword(password.toCharArray());
         }
-
+        options.setCleanSession(true);
+        options.setAutomaticReconnect(true);
         client.setCallback(this);
         client.connect(options);
-        client.subscribe("greenhouse/+/+", 1);
+        client.subscribe("greenhouse/+/status", 1);
     }
 
 
@@ -50,7 +51,6 @@ public class MqttService implements MqttCallback, MqttPublisher {
 
         } catch (Exception e) {
             System.err.println("Failed to parse telemetry: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -58,6 +58,7 @@ public class MqttService implements MqttCallback, MqttPublisher {
     public void sendCommand (String topic, String payload) throws MqttException {
         MqttMessage message = new MqttMessage(payload.getBytes());
         message.setQos(1);
+        message.setRetained(false); // Important: Commands shouldn't be retained
         client.publish(topic, message);
         System.out.printf("Sent to [%s]: %s%n", topic, payload);
     }
