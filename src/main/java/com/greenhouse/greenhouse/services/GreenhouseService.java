@@ -1,6 +1,7 @@
 package com.greenhouse.greenhouse.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.greenhouse.greenhouse.dtos.telemetry.*;
 import com.greenhouse.greenhouse.exceptions.GreenhouseNotFoundException;
 import com.greenhouse.greenhouse.mappers.GreenhouseMapper;
 import com.greenhouse.greenhouse.mappers.ParameterMapper;
@@ -123,6 +124,90 @@ public class GreenhouseService {
         }
         catch (Exception e){
             System.out.println(e);
+        }
+    }
+
+    // Add this new method
+    public void updateTelemetry(TelemetryGreenhouseDTO telemetry) {
+        // 1. Find the Greenhouse
+        Greenhouse gh = greenhouseRepository.findById(telemetry.id).orElse(null);
+        if (gh == null) return; // Unknown greenhouse, ignore
+
+        // 2. Update Zones
+        if (telemetry.zones != null) {
+            for (TelemetryZoneDTO zDto : telemetry.zones) {
+                // Find matching zone in the entity list
+                gh.getZones().stream()
+                        .filter(z -> z.getId().equals(zDto.id))
+                        .findFirst()
+                        .ifPresent(zone -> {
+                            updateParams(zone.getParameters(), zDto.parameters);
+
+                            // Update Flowerpots
+                            if (zDto.flowerpots != null) {
+                                for (TelemetryFlowerpotDTO fpDto : zDto.flowerpots) {
+                                    zone.getFlowerpots().stream()
+                                            .filter(fp -> fp.getId().equals(fpDto.id))
+                                            .findFirst()
+                                            .ifPresent(fp -> updateParams(fp.getParameters(), fpDto.parameters));
+                                }
+                            }
+                        });
+            }
+        }
+
+        // 3. Save Changes
+        greenhouseRepository.save(gh);
+    }
+
+    // Helper to update a list of parameters
+    private void updateParams(List<ParameterEntity> entities, List<TelemetryParameterDTO> dtos) {
+        if (dtos == null || entities == null) return;
+
+        for (TelemetryParameterDTO pDto : dtos) {
+            entities.stream()
+                    .filter(p -> p.getId().equals(pDto.id))
+                    .findFirst()
+                    .ifPresent(p -> {
+                        if (pDto.val != null) {
+                            p.setCurrentValue(pDto.val);
+                        }
+                    });
+        }
+    }
+    public void sendConfiguration(Long greenhouseId, List<DeviceConfigDTO> configList) {
+        Greenhouse gh = greenhouseRepository.findById(greenhouseId).orElse(null);
+        if (gh == null) return;
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonPayload = mapper.writeValueAsString(configList);
+
+            // Topic: greenhouse/{IP}/set/config
+            String topic = "greenhouse/" + gh.getIpAddress() + "/set/config";
+
+            mqttService.sendCommand(topic, jsonPayload);
+            System.out.println("Sent CONFIG to " + topic);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendMapping(Long greenhouseId, List<MappingDTO> mappingList) {
+        Greenhouse gh = greenhouseRepository.findById(greenhouseId).orElse(null);
+        if (gh == null) return;
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonPayload = mapper.writeValueAsString(mappingList);
+
+            // Topic: greenhouse/{IP}/set/mapping
+            String topic = "greenhouse/" + gh.getIpAddress() + "/set/mapping";
+
+            mqttService.sendCommand(topic, jsonPayload);
+            System.out.println("Sent MAPPING to " + topic);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
