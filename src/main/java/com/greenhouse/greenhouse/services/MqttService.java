@@ -1,6 +1,7 @@
 package com.greenhouse.greenhouse.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.greenhouse.greenhouse.dtos.telemetry.TelemetryGreenhouseDTO;
 import com.greenhouse.greenhouse.models.Greenhouse;
 import org.eclipse.paho.client.mqttv3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +40,18 @@ public class MqttService implements MqttCallback, MqttPublisher {
     public void messageArrived(String topic, MqttMessage message) throws Exception {
         String payloadStr = new String(message.getPayload());
         ObjectMapper objectMapper = new ObjectMapper();
-        Greenhouse updatedGreenhouse = objectMapper.readValue(payloadStr, Greenhouse.class);
-        greenhouseService.updateGreenhouse(updatedGreenhouse);
+// 1. Parse into Telemetry DTO (Lightweight)
+        try {
+            TelemetryGreenhouseDTO telemetry = objectMapper.readValue(payloadStr, TelemetryGreenhouseDTO.class);
+
+            // 2. Delegate the update to a specialized service method
+            // (You need to create this method in GreenhouseService)
+            greenhouseService.updateTelemetry(telemetry);
+
+        } catch (Exception e) {
+            System.err.println("Failed to parse telemetry: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @Override

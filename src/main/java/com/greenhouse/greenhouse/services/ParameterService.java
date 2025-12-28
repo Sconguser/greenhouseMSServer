@@ -133,8 +133,13 @@ public class ParameterService {
             try {
 //                String jsonPayload = objectMapper.writeValueAsString(returnParameters);
 //                mqttService.sendCommand(greenhouse.getIpAddress(), jsonPayload);
-                String jsonPayload = objectMapper.writeValueAsString(greenhouse);
-                mqttService.sendCommand(greenhouse.getIpAddress(), jsonPayload);
+                String jsonPayload = objectMapper.writeValueAsString(returnParameters); // Sending the DTOs back is usually safer than full entity
+
+                // 2. Construct the Correct Topic
+                String topic = "greenhouse/" + greenhouse.getIpAddress() + "/set/model";
+
+                // 3. Send
+                mqttService.sendCommand(topic, jsonPayload);
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
