@@ -3,6 +3,7 @@ package com.greenhouse.greenhouse.models;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,16 +23,19 @@ public class Greenhouse {
 
     private Status status = Status.OFF;
 
+    @Column(name = "last_update")
+    private LocalDateTime lastUpdate;
+
     @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
     @JsonManagedReference("greenhouse-params")
     private final List<ParameterEntity> parameters = new ArrayList<>();
 
     public Greenhouse () {
     }
+
     public Long getId () {
         return id;
     }
-
     public void setId (Long id) {
         this.id = id;
     }
@@ -103,4 +107,12 @@ public class Greenhouse {
                 .equals(zoneId));
     }
 
+
+    public LocalDateTime getLastUpdate () {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate (LocalDateTime lastUpdate) {
+        this.lastUpdate = lastUpdate;
+    }
 }

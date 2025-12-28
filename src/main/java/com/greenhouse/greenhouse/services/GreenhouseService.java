@@ -8,6 +8,7 @@ import com.greenhouse.greenhouse.mappers.ParameterMapper;
 import com.greenhouse.greenhouse.mappers.ZoneMapper;
 import com.greenhouse.greenhouse.models.Greenhouse;
 import com.greenhouse.greenhouse.models.ParameterEntity;
+import com.greenhouse.greenhouse.models.Status;
 import com.greenhouse.greenhouse.models.Zone;
 import com.greenhouse.greenhouse.repositories.GreenhouseRepository;
 import com.greenhouse.greenhouse.repositories.ZoneRepository;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -133,7 +135,12 @@ public class GreenhouseService {
         // 1. Find the Greenhouse
         Greenhouse gh = greenhouseRepository.findById(telemetry.id).orElse(null);
         if (gh == null) return; // Unknown greenhouse, ignore
+        gh.setLastUpdate(LocalDateTime.now());
 
+        // 2. Since we received data, the device is definitely ON
+        if (gh.getStatus() == Status.NOT_RESPONSIVE || gh.getStatus() == Status.OFF) {
+            gh.setStatus(Status.ON);
+        }
         // 2. Update Zones
         if (telemetry.zones != null) {
             for (TelemetryZoneDTO zDto : telemetry.zones) {
