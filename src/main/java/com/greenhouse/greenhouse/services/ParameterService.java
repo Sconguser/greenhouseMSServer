@@ -7,19 +7,19 @@ import com.greenhouse.greenhouse.exceptions.GreenhouseNotFoundException;
 import com.greenhouse.greenhouse.exceptions.ParameterNotFoundException;
 import com.greenhouse.greenhouse.exceptions.ZoneNotFoundException;
 import com.greenhouse.greenhouse.mappers.ParameterMapper;
-import com.greenhouse.greenhouse.models.Flowerpot;
-import com.greenhouse.greenhouse.models.Greenhouse;
-import com.greenhouse.greenhouse.models.ParameterEntity;
-import com.greenhouse.greenhouse.models.Zone;
+import com.greenhouse.greenhouse.models.*;
 import com.greenhouse.greenhouse.repositories.FlowerpotRepository;
 import com.greenhouse.greenhouse.repositories.GreenhouseRepository;
 import com.greenhouse.greenhouse.repositories.ParameterRepository;
 import com.greenhouse.greenhouse.repositories.ZoneRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ParameterService {
@@ -111,40 +111,134 @@ public class ParameterService {
                 .map(parameterMapper::toDto)
                 .toList();
     }
+    @Transactional
+    public List<ParameterDTO> updateParameters(List<ParameterDTO> parameterDTOS) {
+        if (parameterDTOS == null || parameterDTOS.isEmpty()) return java.util.Collections.emptyList();
 
-    public List<ParameterDTO> updateParameters (List<ParameterDTO> parameterDTOS) {
-        List<ParameterEntity> updatedParameters = new ArrayList<>();
-        parameterDTOS.forEach(parameterDto -> {
-            ParameterEntity parameterEntity = parameterRepository.findById(parameterDto.getId())
-                    .orElseThrow(() -> new ParameterNotFoundException("Parameter was not found"));
-            if (parameterDto.getRequestedValue() != null) {
-                parameterEntity.setRequestedValue(parameterDto.getRequestedValue());
-            }
-            updatedParameters.add(parameterRepository.save(parameterEntity));
-        });
-        List<ParameterDTO> returnParameters = updatedParameters.stream()
-                .map((parameter) -> parameterMapper.toDto(parameter))
-                .toList();
-        Long greenhouseId = findGreenhouseId(updatedParameters);
-        if (greenhouseId != null) {
-            Greenhouse greenhouse = greenhouseRepository.findById(greenhouseId)
-                    .orElseThrow(() -> new IllegalStateException("Parameters do not belong to any greenhouse"));
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-//                String jsonPayload = objectMapper.writeValueAsString(returnParameters);
-//                mqttService.sendCommand(greenhouse.getIpAddress(), jsonPayload);
-                String jsonPayload = objectMapper.writeValueAsString(returnParameters); // Sending the DTOs back is usually safer than full entity
+        List<ParameterEntity> updatedEntities = new ArrayList<>();
+        // We use this map to quickly check which IDs were actually updated when building the MQTT payload
+        java.util.Map<Long, Double> updatesMap = new java.util.HashMap<>();
+        Long greenhouseId = null;
 
-                // 2. Construct the Correct Topic
-                String topic = "greenhouse/" + greenhouse.getIpAddress() + "/set/model";
+        // --- 1. Database Update Phase ---
+        for (ParameterDTO dto : parameterDTOS) {
+            if (dto.getId() == null || dto.getRequestedValue() == null) continue;
 
-                // 3. Send
-                mqttService.sendCommand(topic, jsonPayload);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
+            ParameterEntity p = parameterRepository.findById(dto.getId()).orElse(null);
+
+            if (p != null) {
+                // Update DB
+                p.setRequestedValue(dto.getRequestedValue());
+                parameterRepository.save(p);
+
+                updatedEntities.add(p);
+                updatesMap.put(p.getId(), dto.getRequestedValue());
+
+                // Find Greenhouse ID (from the first valid parameter)
+                if (greenhouseId == null) {
+                    if (p.getGreenhouse() != null) {
+                        greenhouseId = p.getGreenhouse().getId();
+                    } else if (p.getZone() != null) {
+                        greenhouseId = p.getZone().getGreenhouse().getId();
+                    } else if (p.getFlowerpot() != null) {
+                        greenhouseId = p.getFlowerpot().getZone().getGreenhouse().getId();
+                    }
+                }
             }
         }
-        return returnParameters;
+
+        // --- 2. MQTT Command Phase ---
+        if (greenhouseId != null) {
+            Greenhouse greenhouse = greenhouseRepository.findById(greenhouseId).orElse(null);
+
+            if (greenhouse != null && greenhouse.getIpAddress() != null) {
+                try {
+                    // Root: { "id": 1, "zones": [ ... ] }
+                    java.util.Map<String, Object> rootPayload = new java.util.HashMap<>();
+                    rootPayload.put("id", greenhouse.getId());
+
+                    List<java.util.Map<String, Object>> zonesPayload = new ArrayList<>();
+
+                    // Walk the full hierarchy to find parents of updated parameters
+                    for (Zone z : greenhouse.getZones()) {
+                        java.util.Map<String, Object> zoneMap = new java.util.HashMap<>();
+                        zoneMap.put("id", z.getId());
+
+                        List<java.util.Map<String, Object>> zParams = new ArrayList<>();
+                        List<java.util.Map<String, Object>> potsPayload = new ArrayList<>();
+                        boolean zoneHasUpdates = false;
+
+                        // A. Check Zone Parameters
+                        if (z.getParameters() != null) {
+                            for (ParameterEntity p : z.getParameters()) {
+                                if (updatesMap.containsKey(p.getId())) {
+                                    java.util.Map<String, Object> pMap = new java.util.HashMap<>();
+                                    pMap.put("id", p.getId());
+                                    pMap.put("requestedValue", updatesMap.get(p.getId()));
+                                    zParams.add(pMap);
+                                    zoneHasUpdates = true;
+                                }
+                            }
+                        }
+
+                        // B. Check Flowerpot Parameters
+                        if (z.getFlowerpots() != null) {
+                            for (Flowerpot fp : z.getFlowerpots()) {
+                                java.util.Map<String, Object> potMap = new java.util.HashMap<>();
+                                potMap.put("id", fp.getId());
+                                List<java.util.Map<String, Object>> fpParams = new ArrayList<>();
+                                boolean potHasUpdates = false;
+
+                                if (fp.getParameters() != null) {
+                                    for (ParameterEntity p : fp.getParameters()) {
+                                        if (updatesMap.containsKey(p.getId())) {
+                                            java.util.Map<String, Object> pMap = new java.util.HashMap<>();
+                                            pMap.put("id", p.getId());
+                                            pMap.put("requestedValue", updatesMap.get(p.getId()));
+                                            fpParams.add(pMap);
+                                            potHasUpdates = true;
+                                            zoneHasUpdates = true;
+                                        }
+                                    }
+                                }
+
+                                if (potHasUpdates) {
+                                    potMap.put("parameters", fpParams);
+                                    potsPayload.add(potMap);
+                                }
+                            }
+                        }
+
+                        // Add Zone to payload only if it (or its children) changed
+                        if (zoneHasUpdates) {
+                            if (!zParams.isEmpty()) zoneMap.put("parameters", zParams);
+                            if (!potsPayload.isEmpty()) zoneMap.put("flowerpots", potsPayload);
+                            zonesPayload.add(zoneMap);
+                        }
+                    }
+
+                    // Send MQTT if there is data
+                    if (!zonesPayload.isEmpty()) {
+                        rootPayload.put("zones", zonesPayload);
+
+                        ObjectMapper mapper = new ObjectMapper();
+                        String jsonPayload = mapper.writeValueAsString(rootPayload);
+
+                        String topic = "greenhouse/" + greenhouse.getIpAddress() + "/set/model";
+                        mqttService.sendCommand(topic, jsonPayload);
+                    }
+
+                } catch (Exception e) {
+                    System.err.println("MQTT Send Error: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        // --- 3. Return DTOs ---
+        return updatedEntities.stream()
+                .map(parameterMapper::toDto)
+                .toList();
     }
 
     private Long findGreenhouseId (List<ParameterEntity> parameterEntities) {

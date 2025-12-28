@@ -17,6 +17,7 @@ import com.greenhouse.greenhouse.responses.GreenhouseResponse;
 import com.greenhouse.greenhouse.responses.ZoneResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -127,7 +128,7 @@ public class GreenhouseService {
         }
     }
 
-    // Add this new method
+    @Transactional
     public void updateTelemetry(TelemetryGreenhouseDTO telemetry) {
         // 1. Find the Greenhouse
         Greenhouse gh = greenhouseRepository.findById(telemetry.id).orElse(null);
