@@ -25,6 +25,8 @@ public class GreenhouseApplication {
 
 	@Bean
 	FirebaseMessaging firebaseMessaging () throws IOException {
+
+		try {
 		GoogleCredentials googleCredentials = GoogleCredentials.getApplicationDefault();
 		FirebaseOptions firebaseOptions = FirebaseOptions.builder()
 				.setCredentials(googleCredentials)
@@ -44,6 +46,10 @@ public class GreenhouseApplication {
 			}
 		}
 		return FirebaseMessaging.getInstance(app);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
 	}
 
 }

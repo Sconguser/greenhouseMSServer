@@ -6,6 +6,7 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.greenhouse.greenhouse.exceptions.NotificationNotSentException;
 import com.greenhouse.greenhouse.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,8 @@ public class NotificationService {
     private final FirebaseMessaging firebaseMessaging;
     private final UserRepository userRepository;
 
-    public NotificationService (FirebaseMessaging firebaseMessaging, UserRepository userRepository) {
+    @Autowired
+    public NotificationService (@Autowired(required = false) FirebaseMessaging firebaseMessaging, UserRepository userRepository) {
         this.firebaseMessaging = firebaseMessaging;
         this.userRepository = userRepository;
     }
