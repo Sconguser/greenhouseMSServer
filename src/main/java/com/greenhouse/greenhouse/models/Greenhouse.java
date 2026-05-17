@@ -26,6 +26,12 @@ public class Greenhouse {
     @Column(name = "last_update")
     private LocalDateTime lastUpdate;
 
+    @Column(name = "device_config", columnDefinition = "TEXT")
+    private String deviceConfigJson;
+
+    @Column(name = "mapping_config", columnDefinition = "TEXT")
+    private String mappingConfigJson;
+
     @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
     @JsonManagedReference("greenhouse-params")
     private final List<ParameterEntity> parameters = new ArrayList<>();
@@ -115,4 +121,10 @@ public class Greenhouse {
     public void setLastUpdate (LocalDateTime lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
+
+    public String getDeviceConfigJson () { return deviceConfigJson; }
+    public void setDeviceConfigJson (String deviceConfigJson) { this.deviceConfigJson = deviceConfigJson; }
+
+    public String getMappingConfigJson () { return mappingConfigJson; }
+    public void setMappingConfigJson (String mappingConfigJson) { this.mappingConfigJson = mappingConfigJson; }
 }

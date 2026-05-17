@@ -733,6 +733,81 @@
           "response": []
         }
       ]
+    },
+
+    {
+      "name": "Configuration",
+      "description": "Push physical device config and sensor/actuator mappings to the Arduino.\n\nAll POST endpoints:\n1. Save the config to the server DB (retrievable via GET)\n2. Publish the JSON to the appropriate MQTT topic\n3. Arduino saves to LittleFS and **reboots after ~2 seconds**\n\n## Topic map\n| Endpoint | MQTT topic | Arduino file |\n|---|---|---|\n| POST /config/devices | `greenhouse/<ip>/set/config` | `/config.json` |\n| POST /config/mapping | `greenhouse/<ip>/set/mapping` | `/mapping.json` |\n\nNetwork config (WiFi/MQTT broker) is intentionally not managed by the server — it must be provisioned directly on the device. Pushing credentials through the server creates a chicken-and-egg problem (device must already be connected to receive them) and risks storing passwords in plain text.",
+      "item": [
+        {
+          "name": "Get device config",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:id/config/devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":id", "config", "devices"],
+              "variable": [{ "key": "id", "value": "{{greenhouseId}}" }]
+            },
+            "description": "Returns the last device config (physical sensor/actuator hardware list) pushed to this device."
+          },
+          "response": []
+        },
+        {
+          "name": "Push device config (sensors/actuators hardware)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"name\": \"Air DHT22\",\n    \"driver\": \"DHT22\",\n    \"type\": \"value\",\n    \"pin\": 12\n  },\n  {\n    \"name\": \"Main Heater\",\n    \"driver\": \"digital\",\n    \"type\": \"toggle\",\n    \"pin\": 0\n  },\n  {\n    \"name\": \"Soil Moisture Sensor\",\n    \"driver\": \"muxAnalog\",\n    \"type\": \"value\",\n    \"pin\": 17,\n    \"minValue\": 0.0,\n    \"maxValue\": 1024.0\n  }\n]",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:id/config/devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":id", "config", "devices"],
+              "variable": [{ "key": "id", "value": "{{greenhouseId}}" }]
+            },
+            "description": "Saves and pushes the list of physical devices (sensors/actuators) to the Arduino.\n\nPublishes to `greenhouse/<ip>/set/config`. Arduino saves to `/config.json` and **reboots**.\n\n**Valid driver values:** `\"analog\"`, `\"digital\"`, `\"DHT22\"`, `\"muxAnalog\"`\n**Valid type values:** `\"value\"`, `\"toggle\"`"
+          },
+          "response": []
+        },
+        {
+          "name": "Get mapping config",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:id/config/mapping",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":id", "config", "mapping"],
+              "variable": [{ "key": "id", "value": "{{greenhouseId}}" }]
+            },
+            "description": "Returns the last mapping config (sensor-to-parameter bindings) pushed to this device."
+          },
+          "response": []
+        },
+        {
+          "name": "Push mapping config (sensor-to-parameter bindings)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"scope\": \"zone\",\n    \"zoneId\": 1,\n    \"paramName\": \"Temperature\",\n    \"readDriver\": \"DHT22\",\n    \"readPin\": 12,\n    \"writeDriver\": \"digital\",\n    \"writePin\": 0,\n    \"direction\": \"increase\",\n    \"hysteresis\": 0.5,\n    \"minOnMs\": 60000,\n    \"minOffMs\": 60000,\n    \"outputMode\": \"binary\",\n    \"activeLow\": false\n  },\n  {\n    \"scope\": \"flowerpot\",\n    \"zoneId\": 1,\n    \"flowerpotId\": 1,\n    \"paramName\": \"SoilMoisture\",\n    \"readDriver\": \"muxAnalog\",\n    \"readPin\": 17,\n    \"muxChannel\": 0,\n    \"muxSelPins\": [14, 4, 5],\n    \"mapInMin\": 1024.0,\n    \"mapInMax\": 0.0,\n    \"mapOutMin\": 0.0,\n    \"mapOutMax\": 100.0\n  }\n]",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:id/config/mapping",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":id", "config", "mapping"],
+              "variable": [{ "key": "id", "value": "{{greenhouseId}}" }]
+            },
+            "description": "Saves and pushes sensor/actuator bindings to the Arduino.\n\nPublishes to `greenhouse/<ip>/set/mapping`. Arduino saves to `/mapping.json` and **reboots**.\n\n**paramName** must match the `name` field of a Parameter in the model exactly (case-sensitive).\n**scope**: `\"greenhouse\"`, `\"zone\"`, `\"flowerpot\"`\n**direction**: `\"increase\"` (e.g. heater warms toward target) or `\"decrease\"` (e.g. fan cools toward target)\n**outputMode**: `\"binary\"` (on/off) or `\"pwm\"` (proportional)\n\nFor `muxAnalog` readDriver, `muxChannel` and `muxSelPins` (3-element array) are required.\n\nAnalog scaling: if `mapInMin != mapInMax`, the raw ADC value is linearly mapped to the physical range before updating `currentValue`."
+          },
+          "response": []
+        }
+      ]
     }
 
   ]
