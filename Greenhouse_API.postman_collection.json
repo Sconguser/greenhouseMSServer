@@ -1,0 +1,739 @@
+{
+  "info": {
+    "name": "Greenhouse API",
+    "_postman_id": "a1b2c3d4-0000-0000-0000-greenhouse001",
+    "description": "Complete REST API for the Greenhouse Management Server.\n\n## Quick start\n1. Run **Auth / Login** — the JWT is automatically saved to `{{jwt}}`\n2. All other requests use Bearer `{{jwt}}` via collection-level auth\n3. Update `{{baseUrl}}` if your server runs on a different port\n\n## MQTTX testing (simulate Arduino without a physical device)\n1. Download MQTTX from https://mqttx.app/\n2. Create a connection to your broker — by default `mqtt://localhost:1883`\n3. **Subscribe** to `greenhouse/+/set/model` — you will see every model the server pushes to devices\n4. Use **MQTT Debug / Publish (simulate Arduino telemetry)** from this collection to trigger a round-trip, OR publish manually from MQTTX to `greenhouse/<ip>/status` with the payload:\n   ```json\n   {\"id\":1,\"zones\":[{\"id\":1,\"parameters\":[{\"id\":5,\"val\":23.5}],\"flowerpots\":[{\"id\":1,\"parameters\":[{\"id\":10,\"val\":62.0}]}]}]}\n   ```\n5. After publishing, MQTTX will show the full model the server pushed back to `greenhouse/<ip>/set/model`\n\n## Parameter field names (Arduino contract)\n- `mutable` (not `mutableFlag`)\n- `parameterType`: `\"Toggle\"` or `\"Value\"` (Arduino uses `equalsIgnoreCase(\"TOGGLE\")`)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",      "value": "http://localhost:8080", "type": "string" },
+    { "key": "jwt",          "value": "",                      "type": "string" },
+    { "key": "greenhouseId", "value": "1",                     "type": "string" },
+    { "key": "zoneId",       "value": "1",                     "type": "string" },
+    { "key": "flowerpotId",  "value": "1",                     "type": "string" },
+    { "key": "parameterId",  "value": "1",                     "type": "string" },
+    { "key": "plantId",      "value": "1",                     "type": "string" },
+    { "key": "userId",       "value": "1",                     "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }]
+  },
+  "item": [
+
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"secret123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Create a new user account. Returns 200 'User created' or 400 'User already exists'."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// The server sets the JWT in the Authorization response header.",
+                  "var authHeader = pm.response.headers.get('Authorization');",
+                  "if (authHeader && authHeader.startsWith('Bearer ')) {",
+                  "    var token = authHeader.substring(7);",
+                  "    pm.collectionVariables.set('jwt', token);",
+                  "    console.log('JWT saved (' + token.length + ' chars)');",
+                  "} else {",
+                  "    console.warn('Authorization header not found in response');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"secret123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authenticate and receive a JWT. The test script automatically saves the token to `{{jwt}}` so all subsequent requests are authorized."
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "Greenhouse",
+      "item": [
+        {
+          "name": "Get all greenhouses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ""]
+            },
+            "description": "Returns a list of all greenhouses with their zones, parameters, status, and lastUpdate."
+          },
+          "response": []
+        },
+        {
+          "name": "Get greenhouse by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":id"],
+              "variable": [{ "key": "id", "value": "{{greenhouseId}}", "description": "Greenhouse ID" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add greenhouse",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Main Greenhouse\",\n  \"location\": \"Backyard\",\n  \"ipAddress\": \"192.168.1.100\",\n  \"parameters\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", "add"]
+            },
+            "description": "Create a new greenhouse. `ipAddress` must be a valid IPv4 address — used as the MQTT routing key."
+          },
+          "response": []
+        },
+        {
+          "name": "Update greenhouse",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Main Greenhouse (updated)\",\n  \"location\": \"North Wing\",\n  \"ipAddress\": \"192.168.1.100\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:greenhouseId",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":greenhouseId"],
+              "variable": [{ "key": "greenhouseId", "value": "{{greenhouseId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete greenhouse",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:greenhouseId",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":greenhouseId"],
+              "variable": [{ "key": "greenhouseId", "value": "{{greenhouseId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add zone to greenhouse",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Zone A\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:id/addZone",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":id", "addZone"],
+              "variable": [{ "key": "id", "value": "{{greenhouseId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete zone from greenhouse",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:greenhouseId/deleteZone/:zoneId",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":greenhouseId", "deleteZone", ":zoneId"],
+              "variable": [
+                { "key": "greenhouseId", "value": "{{greenhouseId}}" },
+                { "key": "zoneId",       "value": "{{zoneId}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add parameter to greenhouse",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"AmbientTemperature\",\n  \"mutable\": false,\n  \"currentValue\": 21.0,\n  \"requestedValue\": null,\n  \"min\": 10.0,\n  \"max\": 40.0,\n  \"unit\": \"C\",\n  \"parameterType\": \"Value\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:id/addParameter",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":id", "addParameter"],
+              "variable": [{ "key": "id", "value": "{{greenhouseId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get greenhouse parameters",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:id/parameters",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":id", "parameters"],
+              "variable": [{ "key": "id", "value": "{{greenhouseId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Push model to device (MQTT)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/greenhouse/:id/push",
+              "host": ["{{baseUrl}}"],
+              "path": ["greenhouse", ":id", "push"],
+              "variable": [{ "key": "id", "value": "{{greenhouseId}}" }]
+            },
+            "description": "Manually push the full greenhouse model to the Arduino over MQTT (`greenhouse/<ip>/set/model`). Useful after changing configuration or when the device has re-connected."
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "Zone",
+      "item": [
+        {
+          "name": "Add flowerpot to zone",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pot 1\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/zone/:id/addFlowerpot",
+              "host": ["{{baseUrl}}"],
+              "path": ["zone", ":id", "addFlowerpot"],
+              "variable": [{ "key": "id", "value": "{{zoneId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get all flowerpots in zone",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/zone/:id/flowerpots",
+              "host": ["{{baseUrl}}"],
+              "path": ["zone", ":id", "flowerpots"],
+              "variable": [{ "key": "id", "value": "{{zoneId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get flowerpot by ID (in zone)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/zone/:zoneId/flowerpots/:flowerpotId",
+              "host": ["{{baseUrl}}"],
+              "path": ["zone", ":zoneId", "flowerpots", ":flowerpotId"],
+              "variable": [
+                { "key": "zoneId",      "value": "{{zoneId}}" },
+                { "key": "flowerpotId", "value": "{{flowerpotId}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete flowerpot from zone",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/zone/:zoneId/deleteFlowerpot/:flowerpotId",
+              "host": ["{{baseUrl}}"],
+              "path": ["zone", ":zoneId", "deleteFlowerpot", ":flowerpotId"],
+              "variable": [
+                { "key": "zoneId",      "value": "{{zoneId}}" },
+                { "key": "flowerpotId", "value": "{{flowerpotId}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add parameter to zone",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Temperature\",\n  \"mutable\": true,\n  \"currentValue\": 22.5,\n  \"requestedValue\": 25.0,\n  \"min\": 15.0,\n  \"max\": 35.0,\n  \"unit\": \"C\",\n  \"parameterType\": \"Value\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/zone/:id/addParameter",
+              "host": ["{{baseUrl}}"],
+              "path": ["zone", ":id", "addParameter"],
+              "variable": [{ "key": "id", "value": "{{zoneId}}" }]
+            },
+            "description": "Add a parameter to a zone.\n\n`parameterType`: `VALUE` (numeric sensor reading) or `TOGGLE` (on/off actuator)\n`mutable`: `true` means the Arduino can receive a `requestedValue` and act on it"
+          },
+          "response": []
+        },
+        {
+          "name": "Add TOGGLE parameter to zone",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"HeaterSwitch\",\n  \"mutable\": true,\n  \"currentValue\": 0.0,\n  \"requestedValue\": 1.0,\n  \"min\": 0.0,\n  \"max\": 1.0,\n  \"unit\": \"\",\n  \"parameterType\": \"Toggle\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/zone/:id/addParameter",
+              "host": ["{{baseUrl}}"],
+              "path": ["zone", ":id", "addParameter"],
+              "variable": [{ "key": "id", "value": "{{zoneId}}" }]
+            },
+            "description": "TOGGLE type — the Arduino reads this with `parameterType.equalsIgnoreCase(\"TOGGLE\")`. `requestedValue` of 1.0 = ON, 0.0 = OFF."
+          },
+          "response": []
+        },
+        {
+          "name": "Get zone parameters",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/zone/:id/parameters",
+              "host": ["{{baseUrl}}"],
+              "path": ["zone", ":id", "parameters"],
+              "variable": [{ "key": "id", "value": "{{zoneId}}" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "Flowerpot",
+      "item": [
+        {
+          "name": "Update flowerpot",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pot 1 (updated)\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flowerpot/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["flowerpot", ":id"],
+              "variable": [{ "key": "id", "value": "{{flowerpotId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add plant to flowerpot",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/flowerpot/:flowerpotId/addPlant/:plantId",
+              "host": ["{{baseUrl}}"],
+              "path": ["flowerpot", ":flowerpotId", "addPlant", ":plantId"],
+              "variable": [
+                { "key": "flowerpotId", "value": "{{flowerpotId}}" },
+                { "key": "plantId",     "value": "{{plantId}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove plant from flowerpot",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/flowerpot/:flowerpotId/deletePlant/:plantId",
+              "host": ["{{baseUrl}}"],
+              "path": ["flowerpot", ":flowerpotId", "deletePlant", ":plantId"],
+              "variable": [
+                { "key": "flowerpotId", "value": "{{flowerpotId}}" },
+                { "key": "plantId",     "value": "{{plantId}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add parameter to flowerpot",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"SoilMoisture\",\n  \"mutable\": false,\n  \"currentValue\": 45.0,\n  \"requestedValue\": null,\n  \"min\": 20.0,\n  \"max\": 80.0,\n  \"unit\": \"%\",\n  \"parameterType\": \"Value\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flowerpot/:id/addParameter",
+              "host": ["{{baseUrl}}"],
+              "path": ["flowerpot", ":id", "addParameter"],
+              "variable": [{ "key": "id", "value": "{{flowerpotId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get flowerpot parameters",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/flowerpot/:id/parameters",
+              "host": ["{{baseUrl}}"],
+              "path": ["flowerpot", ":id", "parameters"],
+              "variable": [{ "key": "id", "value": "{{flowerpotId}}" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "Parameter",
+      "item": [
+        {
+          "name": "Update parameters (triggers MQTT model push)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"id\": 1,\n    \"requestedValue\": 25.0\n  },\n  {\n    \"id\": 2,\n    \"requestedValue\": 1.0\n  }\n]",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/parameter/updateParameters",
+              "host": ["{{baseUrl}}"],
+              "path": ["parameter", "updateParameters"]
+            },
+            "description": "Update `requestedValue` for one or more parameters. After saving to DB, the server automatically pushes the **full** greenhouse model to the device over MQTT (`greenhouse/<ip>/set/model`).\n\nOnly `id` and `requestedValue` are required per item. Other fields in the body are ignored.\n\nIf you have MQTTX subscribed to `greenhouse/+/set/model`, you will see the push arrive within milliseconds."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete parameter",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/parameter/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["parameter", ":id"],
+              "variable": [{ "key": "id", "value": "{{parameterId}}" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "Plant",
+      "item": [
+        {
+          "name": "Get all plants",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/plants/",
+              "host": ["{{baseUrl}}"],
+              "path": ["plants", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get plant by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/plants/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["plants", ":id"],
+              "variable": [{ "key": "id", "value": "{{plantId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add plant",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Basil\",\n  \"description\": \"Mediterranean herb, prefers warm and dry conditions\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plants/addPlant",
+              "host": ["{{baseUrl}}"],
+              "path": ["plants", "addPlant"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update plant",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Basil (Sweet)\",\n  \"description\": \"Prefers temperatures between 18-25°C and soil moisture 40-60%\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plants/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["plants", ":id"],
+              "variable": [{ "key": "id", "value": "{{plantId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete plant",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/plants/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["plants", ":id"],
+              "variable": [{ "key": "id", "value": "{{plantId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add requirement to plant",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Temperature\",\n  \"lowerThreshold\": 18.0,\n  \"upperThreshold\": 25.0,\n  \"unit\": \"C\",\n  \"type\": \"VALUE\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plants/:plantId/addRequirement",
+              "host": ["{{baseUrl}}"],
+              "path": ["plants", ":plantId", "addRequirement"],
+              "variable": [{ "key": "plantId", "value": "{{plantId}}" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "Requirement",
+      "item": [
+        {
+          "name": "Delete requirement",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/requirement/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["requirement", ":id"],
+              "variable": [{ "key": "id", "value": "1" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Set FCM token for user",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fcmToken\": \"AAAAxxxxx:APA91bHPRgkFLkB...\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", ":userId"],
+              "variable": [{ "key": "userId", "value": "{{userId}}" }]
+            },
+            "description": "Register a Firebase Cloud Messaging token so the user receives push notifications when sensor values go out of range."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete FCM token for user",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", ":userId"],
+              "variable": [{ "key": "userId", "value": "{{userId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send test notification to all users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/test",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "test"]
+            },
+            "description": "Broadcast a test FCM push notification to every user that has a registered token."
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "MQTT Debug",
+      "description": "Endpoints for testing the server's MQTT integration without a physical Arduino.\n\n## Round-trip test\n1. Open MQTTX and subscribe to `greenhouse/+/set/model`\n2. Send **Publish (simulate Arduino telemetry)** below\n3. Watch MQTTX receive the full model the server pushes back\n\n## Topic reference\n| Direction       | Topic                             | Description                      |\n|-----------------|-----------------------------------|----------------------------------|\n| Arduino → Server | `greenhouse/<ip>/status`         | Sensor telemetry (JSON)          |\n| Server → Arduino | `greenhouse/<ip>/set/model`      | Full greenhouse model (JSON)     |\n| Server → Arduino | `greenhouse/<ip>/set/config`     | Device config (triggers reboot)  |\n| Server → Arduino | `greenhouse/<ip>/set/mapping`    | Sensor/actuator bindings         |",
+      "item": [
+        {
+          "name": "Publish (simulate Arduino telemetry)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"greenhouse/192.168.1.100/status\",\n  \"payload\": \"{\\\"id\\\":1,\\\"zones\\\":[{\\\"id\\\":1,\\\"parameters\\\":[{\\\"id\\\":5,\\\"val\\\":23.5}],\\\"flowerpots\\\":[{\\\"id\\\":1,\\\"parameters\\\":[{\\\"id\\\":10,\\\"val\\\":62.0}]}]}]}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mqtt/debug/publish",
+              "host": ["{{baseUrl}}"],
+              "path": ["mqtt", "debug", "publish"]
+            },
+            "description": "Publish an arbitrary MQTT message via the server's broker connection.\n\nThe example body simulates a telemetry message from an Arduino at 192.168.1.100:\n- Zone parameter ID 5: temperature = 23.5°C\n- Flowerpot parameter ID 10: soil moisture = 62%\n\nThe server will receive this via its own `greenhouse/+/status` subscription, call `updateTelemetry()`, and push the full model back to `greenhouse/192.168.1.100/set/model`.\n\nIf the greenhouse was previously `NOT_RESPONSIVE` or `OFF`, its status will change to `ON` and the model push will happen automatically.\n\n**Update the `id` values to match real IDs in your database.**"
+          },
+          "response": []
+        },
+        {
+          "name": "Publish (simulate reconnect from offline device)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"greenhouse/192.168.1.100/status\",\n  \"payload\": \"{\\\"id\\\":1,\\\"zones\\\":[{\\\"id\\\":1,\\\"parameters\\\":[],\\\"flowerpots\\\":[]}]}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mqtt/debug/publish",
+              "host": ["{{baseUrl}}"],
+              "path": ["mqtt", "debug", "publish"]
+            },
+            "description": "Simulates the first telemetry message from a device that was previously offline. The server detects the status was NOT_RESPONSIVE/OFF and pushes the full model so the device picks up any requestedValue changes that were made while it was offline.\n\nPre-condition: set the greenhouse status to NOT_RESPONSIVE first by calling GET /greenhouse/1 and checking it, or run `PATCH /greenhouse/1` to simulate it. Then send this request and watch MQTTX receive the model push."
+          },
+          "response": []
+        },
+        {
+          "name": "Publish raw (custom topic and payload)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"greenhouse/192.168.1.100/set/config\",\n  \"payload\": \"{\\\"ssid\\\":\\\"MyWifi\\\",\\\"password\\\":\\\"wifipass\\\",\\\"mqttBroker\\\":\\\"192.168.1.10\\\",\\\"mqttPort\\\":1883,\\\"deviceName\\\":\\\"greenhouse-1\\\"}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mqtt/debug/publish",
+              "host": ["{{baseUrl}}"],
+              "path": ["mqtt", "debug", "publish"]
+            },
+            "description": "Publish to any topic — useful for sending device config or mapping updates directly.\n\nChange `topic` and `payload` to whatever you need. Remember to escape inner quotes in the payload string."
+          },
+          "response": []
+        }
+      ]
+    }
+
+  ]
+}

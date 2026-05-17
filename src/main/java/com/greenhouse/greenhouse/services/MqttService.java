@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MqttService implements MqttCallback, MqttPublisher {
+public class MqttService implements MqttCallbackExtended, MqttPublisher {
 
     private final MqttClient client;
 
@@ -21,7 +21,6 @@ public class MqttService implements MqttCallback, MqttPublisher {
                         @Value("${mqtt.username:}") String username, @Value("${mqtt.password:}") String password,
                         @Lazy GreenhouseService greenhouseService) throws MqttException
     {
-
         client = new MqttClient(broker, clientId);
         this.greenhouseService = greenhouseService;
         MqttConnectOptions options = new MqttConnectOptions();
@@ -32,8 +31,15 @@ public class MqttService implements MqttCallback, MqttPublisher {
         options.setCleanSession(true);
         options.setAutomaticReconnect(true);
         client.setCallback(this);
-        client.connect(options);
-        client.subscribe("greenhouse/+/status", 1);
+        try {
+            client.connect(options);
+            // connectComplete() handles subscription for both initial connect and reconnects,
+            // so no explicit subscribe() call is needed here.
+        } catch (MqttException e) {
+            // Broker not reachable at startup — automaticReconnect will keep retrying.
+            // connectComplete() will subscribe once the connection is established.
+            System.err.println("MQTT broker unavailable at startup (will retry): " + e.getMessage());
+        }
     }
 
 
@@ -67,7 +73,19 @@ public class MqttService implements MqttCallback, MqttPublisher {
     @Override
     public void connectionLost (Throwable cause) {
         System.out.println("MQTT connection lost: " + cause.getMessage());
+    }
 
+    @Override
+    public void connectComplete (boolean reconnect, String serverURI) {
+        // Re-subscribe after every connect (required because cleanSession=true discards
+        // server-side subscriptions; without this the server stops receiving telemetry
+        // after any reconnect).
+        try {
+            client.subscribe("greenhouse/+/status", 1);
+            System.out.println("MQTT " + (reconnect ? "re" : "") + "connected – subscribed to greenhouse/+/status");
+        } catch (MqttException e) {
+            System.err.println("MQTT subscribe failed after connect: " + e.getMessage());
+        }
     }
 
     @Override

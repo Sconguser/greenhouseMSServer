@@ -1,6 +1,7 @@
 package com.greenhouse.greenhouse.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -41,6 +42,9 @@ public class ParameterEntity {
         this.name = name;
     }
 
+    // Arduino reads src["mutable"] — pin the key name explicitly so it survives
+    // any future rename of this getter.
+    @JsonProperty("mutable")
     public boolean isMutable () {
         return mutable;
     }

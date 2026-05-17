@@ -10,7 +10,7 @@ import com.greenhouse.greenhouse.services.ParameterService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -69,5 +69,11 @@ public class GreenhouseController {
     @GetMapping("/{id}/parameters")
     public ResponseEntity<List<ParameterDTO>> getParameters(@PathVariable Long id){
         return ResponseEntity.ok(parameterService.getGreenhouseParameters(id));
+    }
+
+    @PostMapping("/{id}/push")
+    public ResponseEntity<?> pushModelToDevice(@PathVariable Long id) {
+        greenhouseService.sendGreenhouseDataToGreenhouse(id);
+        return ResponseEntity.ok("Model pushed to greenhouse " + id);
     }
 }

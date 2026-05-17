@@ -1,6 +1,7 @@
 package com.greenhouse.greenhouse.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -16,6 +17,7 @@ public class Plant {
     private String name;
     private String description;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "plant", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<RequirementEntity> requirements = new ArrayList<>();
 
@@ -23,6 +25,7 @@ public class Plant {
     @Column
     private byte[] imageData;
 
+    @JsonIgnore
     @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToMany(mappedBy = "plants")
     private List<Flowerpot> flowerPots;

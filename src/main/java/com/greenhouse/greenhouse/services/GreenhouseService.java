@@ -31,10 +31,12 @@ public class GreenhouseService {
     private final ZoneRepository zoneRepository;
     private final ParameterMapper parameterMapper;
     private final MqttPublisher mqttService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
     public GreenhouseService (GreenhouseRepository greenhouseRepository, GreenhouseMapper greenhouseMapper,
-                              ZoneMapper zoneMapper, ZoneRepository zoneRepository, ParameterMapper parameterMapper, MqttPublisher mqttPublisher)
+                              ZoneMapper zoneMapper, ZoneRepository zoneRepository, ParameterMapper parameterMapper,
+                              MqttPublisher mqttPublisher, ObjectMapper objectMapper)
     {
         this.greenhouseRepository = greenhouseRepository;
         this.greenhouseMapper = greenhouseMapper;
@@ -42,6 +44,7 @@ public class GreenhouseService {
         this.zoneRepository = zoneRepository;
         this.parameterMapper = parameterMapper;
         this.mqttService = mqttPublisher;
+        this.objectMapper = objectMapper;
     }
 
     public GreenhouseResponse getGreenhouse (Long id) {
@@ -118,15 +121,19 @@ public class GreenhouseService {
         greenhouseRepository.save(greenhouse);
     }
 
+    @Transactional(readOnly = true)
     public void sendGreenhouseDataToGreenhouse(Long greenhouseId){
-        Greenhouse greenhouse = getGreenhouseEntity(greenhouseId);
-        ObjectMapper objectMapper = new ObjectMapper();
+        pushModelToDevice(getGreenhouseEntity(greenhouseId));
+    }
+
+    private void pushModelToDevice(Greenhouse greenhouse) {
+        if (greenhouse.getIpAddress() == null || greenhouse.getIpAddress().isBlank()) return;
         try {
             String jsonPayload = objectMapper.writeValueAsString(greenhouse);
-            mqttService.sendCommand(greenhouse.getIpAddress(), jsonPayload);
-        }
-        catch (Exception e){
-            System.out.println(e);
+            String topic = "greenhouse/" + greenhouse.getIpAddress() + "/set/model";
+            mqttService.sendCommand(topic, jsonPayload);
+        } catch (Exception e) {
+            System.err.println("Failed to push model to device: " + e.getMessage());
         }
     }
 
@@ -137,8 +144,10 @@ public class GreenhouseService {
         if (gh == null) return; // Unknown greenhouse, ignore
         gh.setLastUpdate(LocalDateTime.now());
 
-        // 2. Since we received data, the device is definitely ON
-        if (gh.getStatus() == Status.NOT_RESPONSIVE || gh.getStatus() == Status.OFF) {
+        // 2. Since we received data, the device is definitely ON.
+        // Track whether it was previously offline so we can push the latest model after saving.
+        boolean wasOffline = gh.getStatus() == Status.NOT_RESPONSIVE || gh.getStatus() == Status.OFF;
+        if (wasOffline) {
             gh.setStatus(Status.ON);
         }
         // 2. Update Zones
@@ -166,6 +175,12 @@ public class GreenhouseService {
 
         // 3. Save Changes
         greenhouseRepository.save(gh);
+
+        // 4. If the device just came back online, push the latest model so it picks up any
+        //    requested-value changes that happened while it was offline.
+        if (wasOffline) {
+            pushModelToDevice(gh);
+        }
     }
 
     // Helper to update a list of parameters

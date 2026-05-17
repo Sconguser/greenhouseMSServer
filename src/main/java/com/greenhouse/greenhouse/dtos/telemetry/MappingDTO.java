@@ -23,4 +23,10 @@ public class MappingDTO {
     public Integer minOnMs;
     public Integer minOffMs;
     public String outputMode; // "binary"
+
+    // Analog scaling (raw → physical unit)
+    public Float mapInMin;
+    public Float mapInMax;
+    public Float mapOutMin;
+    public Float mapOutMax;
 }
