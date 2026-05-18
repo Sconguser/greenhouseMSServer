@@ -129,6 +129,7 @@ public class GreenhouseService {
         Greenhouse greenhouse = getGreenhouseEntity(greenhouseId);
         greenhouse.setLastPushed(LocalDateTime.now());
         greenhouse.setModelSynced(false);
+        greenhouse.setModelDirtyAt(null);
         greenhouseRepository.save(greenhouse);
         pushModelToDevice(greenhouse);
     }

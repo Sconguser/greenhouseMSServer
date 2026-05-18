@@ -44,6 +44,9 @@ public class Greenhouse {
     @Column(name = "model_synced")
     private Boolean modelSynced = null;
 
+    @Column(name = "model_dirty_at")
+    private LocalDateTime modelDirtyAt;
+
     @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
     @JsonManagedReference("greenhouse-params")
     private final List<ParameterEntity> parameters = new ArrayList<>();
@@ -156,4 +159,7 @@ public class Greenhouse {
 
     public Boolean getModelSynced () { return modelSynced; }
     public void setModelSynced (Boolean modelSynced) { this.modelSynced = modelSynced; }
+
+    public LocalDateTime getModelDirtyAt () { return modelDirtyAt; }
+    public void setModelDirtyAt (LocalDateTime modelDirtyAt) { this.modelDirtyAt = modelDirtyAt; }
 }

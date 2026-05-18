@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,8 +108,24 @@ public class ParameterService {
                 .toList();
     }
 
+    @Transactional
     public void deleteParameter (Long parameterId) {
+        ParameterEntity p = parameterRepository.findById(parameterId).orElse(null);
+        if (p == null) return;
+        Greenhouse gh = resolveGreenhouse(p);
         parameterRepository.deleteById(parameterId);
+        if (gh != null) {
+            gh.setModelDirtyAt(LocalDateTime.now());
+            greenhouseRepository.save(gh);
+        }
+    }
+
+    private Greenhouse resolveGreenhouse (ParameterEntity p) {
+        if (p.getGreenhouse() != null) return p.getGreenhouse();
+        if (p.getZone() != null) return p.getZone().getGreenhouse();
+        if (p.getFlowerpot() != null && p.getFlowerpot().getZone() != null)
+            return p.getFlowerpot().getZone().getGreenhouse();
+        return null;
     }
 
     @Transactional
