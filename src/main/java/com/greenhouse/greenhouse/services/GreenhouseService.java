@@ -32,11 +32,13 @@ public class GreenhouseService {
     private final ParameterMapper parameterMapper;
     private final MqttPublisher mqttService;
     private final ObjectMapper objectMapper;
+    private final ConfigService configService;
 
     @Autowired
     public GreenhouseService (GreenhouseRepository greenhouseRepository, GreenhouseMapper greenhouseMapper,
                               ZoneMapper zoneMapper, ZoneRepository zoneRepository, ParameterMapper parameterMapper,
-                              MqttPublisher mqttPublisher, ObjectMapper objectMapper)
+                              MqttPublisher mqttPublisher, ObjectMapper objectMapper,
+                              @org.springframework.context.annotation.Lazy ConfigService configService)
     {
         this.greenhouseRepository = greenhouseRepository;
         this.greenhouseMapper = greenhouseMapper;
@@ -45,6 +47,7 @@ public class GreenhouseService {
         this.parameterMapper = parameterMapper;
         this.mqttService = mqttPublisher;
         this.objectMapper = objectMapper;
+        this.configService = configService;
     }
 
     public GreenhouseResponse getGreenhouse (Long id) {
@@ -121,12 +124,25 @@ public class GreenhouseService {
         greenhouseRepository.save(greenhouse);
     }
 
-    @Transactional(readOnly = true)
-    public void sendGreenhouseDataToGreenhouse(Long greenhouseId){
-        pushModelToDevice(getGreenhouseEntity(greenhouseId));
+    @Transactional
+    public void sendGreenhouseDataToGreenhouse(Long greenhouseId) {
+        Greenhouse greenhouse = getGreenhouseEntity(greenhouseId);
+        greenhouse.setLastPushed(LocalDateTime.now());
+        greenhouse.setModelSynced(false);
+        greenhouseRepository.save(greenhouse);
+        pushModelToDevice(greenhouse);
     }
 
-    private void pushModelToDevice(Greenhouse greenhouse) {
+    @Transactional
+    public void markModelSynced(String ipAddress) {
+        greenhouseRepository.findByIpAddress(ipAddress).ifPresent(gh -> {
+            gh.setModelSynced(true);
+            greenhouseRepository.save(gh);
+            System.out.printf("[MODEL] Model ACK received for %s%n", ipAddress);
+        });
+    }
+
+    public void pushModelToDevice(Greenhouse greenhouse) {
         if (greenhouse.getIpAddress() == null || greenhouse.getIpAddress().isBlank()) return;
         try {
             String jsonPayload = objectMapper.writeValueAsString(greenhouse);
@@ -176,10 +192,23 @@ public class GreenhouseService {
         // 3. Save Changes
         greenhouseRepository.save(gh);
 
-        // 4. If the device just came back online, push the latest model so it picks up any
-        //    requested-value changes that happened while it was offline.
+        // 4. If the device just came back online, start a sequential push sequence:
+        //    config → (ACK) → mapping → (ACK) → model.
+        //    Sending all three at once would cause multiple reboots before any file is saved.
         if (wasOffline) {
-            pushModelToDevice(gh);
+            gh.setModelSynced(false);
+            greenhouseRepository.save(gh);
+            try {
+                if (Boolean.FALSE.equals(gh.getDeviceConfigSynced())) {
+                    configService.pushDeviceConfig(gh);
+                } else if (Boolean.FALSE.equals(gh.getMappingConfigSynced())) {
+                    configService.pushMappingConfig(gh);
+                } else {
+                    pushModelToDevice(gh);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to start reconnect push sequence: " + e.getMessage());
+            }
         }
     }
 

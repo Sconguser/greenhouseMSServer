@@ -2,9 +2,13 @@ package com.greenhouse.greenhouse.dtos;
 
 import com.greenhouse.greenhouse.models.ParameterType;
 
+import java.time.LocalDateTime;
+
 public class ParameterDTO {
     private Long id;
     private String name;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private boolean mutable;
     private Double currentValue;
     private Double requestedValue;
@@ -83,5 +87,21 @@ public class ParameterDTO {
 
     public void setParameterType (ParameterType parameterType) {
         this.parameterType = parameterType;
+    }
+
+    public LocalDateTime getCreatedAt () {
+        return createdAt;
+    }
+
+    public void setCreatedAt (LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt () {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt (LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

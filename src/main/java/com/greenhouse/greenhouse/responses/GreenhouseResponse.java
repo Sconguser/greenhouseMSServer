@@ -15,11 +15,17 @@ public class GreenhouseResponse {
     private final String ipAddress;
     private final Status status;
     private final LocalDateTime lastUpdate;
+    private final LocalDateTime lastPushed;
+    private final Boolean deviceConfigSynced;
+    private final Boolean mappingConfigSynced;
+    private final Boolean modelSynced;
     private final List<ZoneResponse> zones = new ArrayList<>();
     private final List<ParameterDTO> parameters = new ArrayList<>();
 
     public GreenhouseResponse (String name, String location, String ipAddress, List<ZoneResponse> zones, Long id,
-                               List<ParameterDTO> parameters, Status status, LocalDateTime lastUpdate)
+                               List<ParameterDTO> parameters, Status status, LocalDateTime lastUpdate,
+                               LocalDateTime lastPushed, Boolean deviceConfigSynced, Boolean mappingConfigSynced,
+                               Boolean modelSynced)
     {
         this.name = name;
         this.location = location;
@@ -27,10 +33,13 @@ public class GreenhouseResponse {
         this.id = id;
         this.status = status;
         this.lastUpdate = lastUpdate;
+        this.lastPushed = lastPushed;
+        this.deviceConfigSynced = deviceConfigSynced;
+        this.mappingConfigSynced = mappingConfigSynced;
+        this.modelSynced = modelSynced;
         if (zones != null) {
             this.zones.addAll(zones);
         }
-
         if (parameters != null) {
             this.parameters.addAll(parameters);
         }
@@ -66,5 +75,21 @@ public class GreenhouseResponse {
 
     public LocalDateTime getLastUpdate () {
         return lastUpdate;
+    }
+
+    public LocalDateTime getLastPushed () {
+        return lastPushed;
+    }
+
+    public Boolean getDeviceConfigSynced () {
+        return deviceConfigSynced;
+    }
+
+    public Boolean getMappingConfigSynced () {
+        return mappingConfigSynced;
+    }
+
+    public Boolean getModelSynced () {
+        return modelSynced;
     }
 }

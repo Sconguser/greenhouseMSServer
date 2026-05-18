@@ -7,6 +7,7 @@ import com.greenhouse.greenhouse.dtos.telemetry.MappingDTO;
 import com.greenhouse.greenhouse.models.Greenhouse;
 import com.greenhouse.greenhouse.repositories.GreenhouseRepository;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,12 +20,15 @@ public class ConfigService {
     private final GreenhouseRepository greenhouseRepository;
     private final MqttPublisher mqttPublisher;
     private final ObjectMapper objectMapper;
+    private final GreenhouseService greenhouseService;
 
     public ConfigService(GreenhouseRepository greenhouseRepository, MqttPublisher mqttPublisher,
-                         ObjectMapper objectMapper) {
+                         ObjectMapper objectMapper,
+                         @Lazy GreenhouseService greenhouseService) {
         this.greenhouseRepository = greenhouseRepository;
         this.mqttPublisher = mqttPublisher;
         this.objectMapper = objectMapper;
+        this.greenhouseService = greenhouseService;
     }
 
     // -------------------------------------------------------------------------
@@ -46,8 +50,13 @@ public class ConfigService {
         Greenhouse gh = require(greenhouseId);
         String json = objectMapper.writeValueAsString(dtos);
         gh.setDeviceConfigJson(json);
+        gh.setDeviceConfigSynced(false);
         greenhouseRepository.save(gh);
-        push(gh, "set/config", json);
+        try {
+            pushDeviceConfig(gh);
+        } catch (Exception e) {
+            System.err.println("[CONFIG] Device config saved to DB but MQTT push failed (will retry on reconnect): " + e.getMessage());
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -69,8 +78,66 @@ public class ConfigService {
         Greenhouse gh = require(greenhouseId);
         String json = objectMapper.writeValueAsString(dtos);
         gh.setMappingConfigJson(json);
+        gh.setMappingConfigSynced(false);
         greenhouseRepository.save(gh);
-        push(gh, "set/mapping", json);
+        try {
+            pushMappingConfig(gh);
+        } catch (Exception e) {
+            System.err.println("[CONFIG] Mapping config saved to DB but MQTT push failed (will retry on reconnect): " + e.getMessage());
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Push-only methods — used on reconnect re-push without touching DB state
+    // -------------------------------------------------------------------------
+
+    public void pushDeviceConfig(Greenhouse gh) throws MqttException {
+        if (gh.getDeviceConfigJson() == null) return;
+        push(gh, "set/config", gh.getDeviceConfigJson());
+    }
+
+    public void pushMappingConfig(Greenhouse gh) throws MqttException {
+        if (gh.getMappingConfigJson() == null) return;
+        push(gh, "set/mapping", gh.getMappingConfigJson());
+    }
+
+    // -------------------------------------------------------------------------
+    // ACK handlers — called when board confirms it saved the file.
+    // Chain: if the next item in the sequence is still pending, push it now.
+    // -------------------------------------------------------------------------
+
+    @Transactional
+    public void markDeviceConfigSynced(String ipAddress) {
+        greenhouseRepository.findByIpAddress(ipAddress).ifPresent(gh -> {
+            gh.setDeviceConfigSynced(true);
+            greenhouseRepository.save(gh);
+            System.out.printf("[CONFIG] Device config ACK received for %s%n", ipAddress);
+            try {
+                if (Boolean.FALSE.equals(gh.getMappingConfigSynced())) {
+                    pushMappingConfig(gh);
+                } else if (Boolean.FALSE.equals(gh.getModelSynced())) {
+                    greenhouseService.pushModelToDevice(gh);
+                }
+            } catch (Exception e) {
+                System.err.println("[CONFIG] Sequential push after config ACK failed: " + e.getMessage());
+            }
+        });
+    }
+
+    @Transactional
+    public void markMappingConfigSynced(String ipAddress) {
+        greenhouseRepository.findByIpAddress(ipAddress).ifPresent(gh -> {
+            gh.setMappingConfigSynced(true);
+            greenhouseRepository.save(gh);
+            System.out.printf("[CONFIG] Mapping config ACK received for %s%n", ipAddress);
+            try {
+                if (Boolean.FALSE.equals(gh.getModelSynced())) {
+                    greenhouseService.pushModelToDevice(gh);
+                }
+            } catch (Exception e) {
+                System.err.println("[CONFIG] Sequential push after mapping ACK failed: " + e.getMessage());
+            }
+        });
     }
 
     // -------------------------------------------------------------------------

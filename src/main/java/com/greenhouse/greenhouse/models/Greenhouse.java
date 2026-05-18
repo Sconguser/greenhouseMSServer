@@ -26,11 +26,23 @@ public class Greenhouse {
     @Column(name = "last_update")
     private LocalDateTime lastUpdate;
 
+    @Column(name = "last_pushed")
+    private LocalDateTime lastPushed;
+
     @Column(name = "device_config", columnDefinition = "TEXT")
     private String deviceConfigJson;
 
     @Column(name = "mapping_config", columnDefinition = "TEXT")
     private String mappingConfigJson;
+
+    @Column(name = "device_config_synced")
+    private Boolean deviceConfigSynced = null;  // null=never pushed, false=pending ACK, true=synced
+
+    @Column(name = "mapping_config_synced")
+    private Boolean mappingConfigSynced = null;
+
+    @Column(name = "model_synced")
+    private Boolean modelSynced = null;
 
     @OneToMany(mappedBy = "greenhouse", cascade = CascadeType.ALL)
     @JsonManagedReference("greenhouse-params")
@@ -122,9 +134,26 @@ public class Greenhouse {
         this.lastUpdate = lastUpdate;
     }
 
+    public LocalDateTime getLastPushed () {
+        return lastPushed;
+    }
+
+    public void setLastPushed (LocalDateTime lastPushed) {
+        this.lastPushed = lastPushed;
+    }
+
     public String getDeviceConfigJson () { return deviceConfigJson; }
     public void setDeviceConfigJson (String deviceConfigJson) { this.deviceConfigJson = deviceConfigJson; }
 
     public String getMappingConfigJson () { return mappingConfigJson; }
     public void setMappingConfigJson (String mappingConfigJson) { this.mappingConfigJson = mappingConfigJson; }
+
+    public Boolean getDeviceConfigSynced () { return deviceConfigSynced; }
+    public void setDeviceConfigSynced (Boolean deviceConfigSynced) { this.deviceConfigSynced = deviceConfigSynced; }
+
+    public Boolean getMappingConfigSynced () { return mappingConfigSynced; }
+    public void setMappingConfigSynced (Boolean mappingConfigSynced) { this.mappingConfigSynced = mappingConfigSynced; }
+
+    public Boolean getModelSynced () { return modelSynced; }
+    public void setModelSynced (Boolean modelSynced) { this.modelSynced = modelSynced; }
 }

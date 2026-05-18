@@ -10,7 +10,9 @@ import com.greenhouse.greenhouse.models.Zone;
 import com.greenhouse.greenhouse.repositories.FlowerpotRepository;
 import com.greenhouse.greenhouse.repositories.ZoneRepository;
 import com.greenhouse.greenhouse.requests.FlowerpotRequest;
+import com.greenhouse.greenhouse.requests.ZoneRequest;
 import com.greenhouse.greenhouse.responses.FlowerpotResponse;
+import com.greenhouse.greenhouse.responses.ZoneResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -66,6 +68,12 @@ public class ZoneService {
                 .findFirst()
                 .orElseThrow(
                         () -> new FlowerpotNotFoundException("Flowerpot with id " + flowerpotId + " was not found")));
+    }
+
+    public ZoneResponse updateZone(Long id, ZoneRequest request) {
+        Zone zone = getZone(id);
+        zone.setName(request.getName());
+        return zoneMapper.toResponse(zoneRepository.save(zone));
     }
 
     public void deleteFlowerpot (Long zoneId, Long flowerpotId) {

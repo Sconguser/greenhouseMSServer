@@ -2,7 +2,9 @@ package com.greenhouse.greenhouse.controllers;
 
 import com.greenhouse.greenhouse.dtos.ParameterDTO;
 import com.greenhouse.greenhouse.requests.FlowerpotRequest;
+import com.greenhouse.greenhouse.requests.ZoneRequest;
 import com.greenhouse.greenhouse.responses.FlowerpotResponse;
+import com.greenhouse.greenhouse.responses.ZoneResponse;
 import com.greenhouse.greenhouse.services.ParameterService;
 import com.greenhouse.greenhouse.services.ZoneService;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,12 @@ public class ZoneController {
     public ZoneController (ZoneService zoneService, ParameterService parameterService) {
         this.zoneService = zoneService;
         this.parameterService = parameterService;
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ZoneResponse> updateZone(@PathVariable Long id,
+                                                   @Valid @RequestBody ZoneRequest request) {
+        return ResponseEntity.ok(zoneService.updateZone(id, request));
     }
 
     @PostMapping("/{id}/addFlowerpot")

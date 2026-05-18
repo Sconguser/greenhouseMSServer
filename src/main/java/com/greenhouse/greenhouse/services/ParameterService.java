@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,9 +33,6 @@ public class ParameterService {
     private ZoneRepository zoneRepository;
     @Autowired
     private FlowerpotRepository flowerpotRepository;
-    @Autowired
-    private GreenhouseService greenhouseService;
-
     public ParameterDTO addToGreenhouse (Long greenhouseId, ParameterDTO parameterDTO) {
         Greenhouse greenhouse = greenhouseRepository.findById(greenhouseId)
                 .orElseThrow(
@@ -119,7 +117,6 @@ public class ParameterService {
             return java.util.Collections.emptyList();
 
         List<ParameterEntity> updatedEntities = new ArrayList<>();
-        Long greenhouseId = null;
 
         for (ParameterDTO dto : parameterDTOS) {
             if (dto.getId() == null || dto.getRequestedValue() == null)
@@ -131,23 +128,6 @@ public class ParameterService {
             p.setRequestedValue(dto.getRequestedValue());
             parameterRepository.save(p);
             updatedEntities.add(p);
-
-            if (greenhouseId == null) {
-                if (p.getGreenhouse() != null) {
-                    greenhouseId = p.getGreenhouse().getId();
-                } else if (p.getZone() != null) {
-                    greenhouseId = p.getZone().getGreenhouse().getId();
-                } else if (p.getFlowerpot() != null) {
-                    greenhouseId = p.getFlowerpot().getZone().getGreenhouse().getId();
-                }
-            }
-        }
-
-        // Push the full model so the Arduino gets a complete, coherent update.
-        // A partial model would cause parseGreenhouseJson to atomically swap in an
-        // incomplete struct, losing ipAddress, missing zones, and breaking bindings.
-        if (greenhouseId != null) {
-            greenhouseService.sendGreenhouseDataToGreenhouse(greenhouseId);
         }
 
         return updatedEntities.stream()
