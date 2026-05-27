@@ -52,6 +52,15 @@ public class GlobalExceptionHandler {
         return composeResponse(parameterNotMutableException, request, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Catch-all: any unhandled exception returns a 500 JSON body instead of
+     * closing the connection without headers (which confuses HTTP clients).
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorMessage> handleGenericException(Exception ex, WebRequest request) {
+        return composeResponse(ex, request, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     private ResponseEntity<ErrorMessage> composeResponse (Exception ex, WebRequest request, HttpStatus status) {
         ErrorMessage message = new ErrorMessage(status.value(), new Date(), ex.getMessage(),
                 request.getDescription(false));

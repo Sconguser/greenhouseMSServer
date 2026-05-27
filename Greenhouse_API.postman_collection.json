@@ -13,7 +13,9 @@
     { "key": "flowerpotId",  "value": "1",                     "type": "string" },
     { "key": "parameterId",  "value": "1",                     "type": "string" },
     { "key": "plantId",      "value": "1",                     "type": "string" },
-    { "key": "userId",       "value": "1",                     "type": "string" }
+    { "key": "userId",       "value": "1",                     "type": "string" },
+    { "key": "from",         "value": "2026-01-01T00:00:00",   "type": "string", "description": "Auto-set by Analytics folder pre-request script" },
+    { "key": "to",           "value": "2026-12-31T23:59:59",   "type": "string", "description": "Auto-set by Analytics folder pre-request script" }
   ],
   "auth": {
     "type": "bearer",
@@ -729,6 +731,341 @@
               "path": ["mqtt", "debug", "publish"]
             },
             "description": "Publish to any topic — useful for sending device config or mapping updates directly.\n\nChange `topic` and `payload` to whatever you need. Remember to escape inner quotes in the payload string."
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "Analytics",
+      "description": "Retrieve parameter history charts, boot/crash event logs, aggregate stats, and manage analytics settings.\n\nThe folder pre-request script automatically sets `{{from}}` (24 h ago) and `{{to}}` (now) before every request. Override them on individual requests for longer ranges.\n\n## Quick start\n1. Run **Auth / Login** to get a JWT\n2. Run **Seed test data** in the Analytics Dev folder to populate the DB\n3. Use the requests below to query the data",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Automatically set {{from}} and {{to}} to the last 24 hours.",
+              "// Override per-request if you need a different range.",
+              "var now = new Date();",
+              "var from24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);",
+              "pm.collectionVariables.set('to',   now.toISOString().substring(0, 19));",
+              "pm.collectionVariables.set('from', from24h.toISOString().substring(0, 19));"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Get parameter history (last 24 h)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/parameter/{{parameterId}}/history?from={{from}}&to={{to}}&maxPoints=200",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "parameter", "{{parameterId}}", "history"],
+              "query": [
+                { "key": "from",      "value": "{{from}}" },
+                { "key": "to",        "value": "{{to}}" },
+                { "key": "maxPoints", "value": "200" }
+              ]
+            },
+            "description": "Returns up to `maxPoints` time-series readings for one parameter. Values are uniformly downsampled when the raw count exceeds `maxPoints`.\n\nThe folder pre-request script sets `{{from}}`/`{{to}}` to the last 24 h. Change `maxPoints` for higher/lower chart resolution."
+          },
+          "response": []
+        },
+        {
+          "name": "Get parameter history (last 7 days)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var now = new Date();",
+                  "var from7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);",
+                  "pm.collectionVariables.set('to',   now.toISOString().substring(0, 19));",
+                  "pm.collectionVariables.set('from', from7d.toISOString().substring(0, 19));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/parameter/{{parameterId}}/history?from={{from}}&to={{to}}&maxPoints=200",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "parameter", "{{parameterId}}", "history"],
+              "query": [
+                { "key": "from",      "value": "{{from}}" },
+                { "key": "to",        "value": "{{to}}" },
+                { "key": "maxPoints", "value": "200" }
+              ]
+            },
+            "description": "Same as the 24 h request but the pre-request script overrides `{{from}}` to 7 days ago."
+          },
+          "response": []
+        },
+        {
+          "name": "Get parameter history (last 30 days)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var now = new Date();",
+                  "var from30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);",
+                  "pm.collectionVariables.set('to',   now.toISOString().substring(0, 19));",
+                  "pm.collectionVariables.set('from', from30d.toISOString().substring(0, 19));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/parameter/{{parameterId}}/history?from={{from}}&to={{to}}&maxPoints=200",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "parameter", "{{parameterId}}", "history"],
+              "query": [
+                { "key": "from",      "value": "{{from}}" },
+                { "key": "to",        "value": "{{to}}" },
+                { "key": "maxPoints", "value": "200" }
+              ]
+            },
+            "description": "Same as the 24 h request but the pre-request script overrides `{{from}}` to 30 days ago."
+          },
+          "response": []
+        },
+        {
+          "name": "Get greenhouse events (last 24 h)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/greenhouse/{{greenhouseId}}/events?from={{from}}&to={{to}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "greenhouse", "{{greenhouseId}}", "events"],
+              "query": [
+                { "key": "from", "value": "{{from}}" },
+                { "key": "to",   "value": "{{to}}" }
+              ]
+            },
+            "description": "Returns BOOT and CRASH lifecycle events for a greenhouse in descending order. Use `{{from}}`/`{{to}}` (set by the folder pre-request script) to control the time window."
+          },
+          "response": []
+        },
+        {
+          "name": "Get greenhouse events (last 7 days)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var now = new Date();",
+                  "var from7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);",
+                  "pm.collectionVariables.set('to',   now.toISOString().substring(0, 19));",
+                  "pm.collectionVariables.set('from', from7d.toISOString().substring(0, 19));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/greenhouse/{{greenhouseId}}/events?from={{from}}&to={{to}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "greenhouse", "{{greenhouseId}}", "events"],
+              "query": [
+                { "key": "from", "value": "{{from}}" },
+                { "key": "to",   "value": "{{to}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get greenhouse stats (last 24 h)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/greenhouse/{{greenhouseId}}/stats?from={{from}}&to={{to}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "greenhouse", "{{greenhouseId}}", "stats"],
+              "query": [
+                { "key": "from", "value": "{{from}}" },
+                { "key": "to",   "value": "{{to}}" }
+              ]
+            },
+            "description": "Returns aggregate counts: `bootCount`, `crashCount`, and the queried `from`/`to` window."
+          },
+          "response": []
+        },
+        {
+          "name": "Get greenhouse stats (last 7 days)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var now = new Date();",
+                  "var from7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);",
+                  "pm.collectionVariables.set('to',   now.toISOString().substring(0, 19));",
+                  "pm.collectionVariables.set('from', from7d.toISOString().substring(0, 19));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/greenhouse/{{greenhouseId}}/stats?from={{from}}&to={{to}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "greenhouse", "{{greenhouseId}}", "stats"],
+              "query": [
+                { "key": "from", "value": "{{from}}" },
+                { "key": "to",   "value": "{{to}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get analytics settings",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "settings"]
+            },
+            "description": "Returns the singleton analytics settings row: enabled flag, retention periods, cleanup interval, and timestamp of the last cleanup run."
+          },
+          "response": []
+        },
+        {
+          "name": "Update analytics settings",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"analyticsEnabled\": true,\n  \"historyRetentionDays\": 90,\n  \"eventsRetentionDays\": 365,\n  \"cleanupIntervalHours\": 24\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/analytics/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "settings"]
+            },
+            "description": "Updates analytics settings. `lastCleanup` is read-only and ignored if present in the body.\n\n- `analyticsEnabled` — master switch; when `false` no new history or events are recorded\n- `historyRetentionDays` — sensor readings older than this are deleted by the cleanup job\n- `eventsRetentionDays` — boot/crash events older than this are deleted\n- `cleanupIntervalHours` — how often the cleanup job runs (checked hourly, actual deletion only when interval has elapsed)"
+          },
+          "response": []
+        },
+        {
+          "name": "Disable analytics",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"analyticsEnabled\": false,\n  \"historyRetentionDays\": 90,\n  \"eventsRetentionDays\": 365,\n  \"cleanupIntervalHours\": 24\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/analytics/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "settings"]
+            },
+            "description": "Convenience request — sets `analyticsEnabled` to `false`. No new data will be collected. Existing history and events are preserved and still queryable."
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "Analytics Dev / Seed",
+      "description": "⚠️ **Dev/test only** — remove or guard with `@Profile(\"dev\")` before production.\n\nBypasses MQTT and the `analyticsEnabled` flag to write synthetic data directly into the database. Generated values oscillate smoothly within each parameter's configured `min`/`max` range.\n\n## Typical workflow\n1. **Seed all greenhouses** — generates 24 h of history + lifecycle events\n2. Check results with the Analytics query requests\n3. **Clear all data** — reset between test runs",
+      "item": [
+        {
+          "name": "Seed all greenhouses (24 h, 10 min interval)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/dev/seed",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "dev", "seed"]
+            },
+            "description": "Seeds ALL greenhouses with 24 hours of parameter history (one reading per 10 minutes) and a realistic boot/crash event sequence.\n\nGenerated data:\n- Sine-wave values bounded by each parameter's `min`/`max`\n- ±4% random noise per point\n- TOGGLE parameters alternate 0/1 every ~15 steps\n- 1 BOOT event at the start + 1–3 CRASH/BOOT pairs spread across the window\n- All values are deterministic for the same parameter/greenhouse ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Seed all greenhouses (7 days, 30 min interval)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/dev/seed?hours=168&intervalMinutes=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "dev", "seed"],
+              "query": [
+                { "key": "hours",           "value": "168" },
+                { "key": "intervalMinutes", "value": "30" }
+              ]
+            },
+            "description": "Seeds 7 days (168 h) of history at 30-minute resolution — good for testing the 7-day and 30-day chart ranges in the Flutter app."
+          },
+          "response": []
+        },
+        {
+          "name": "Seed all greenhouses (1 h, 1 min interval — max resolution)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/dev/seed?hours=1&intervalMinutes=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "dev", "seed"],
+              "query": [
+                { "key": "hours",           "value": "1" },
+                { "key": "intervalMinutes", "value": "1" }
+              ]
+            },
+            "description": "Seeds 1 hour of data at the maximum 1-minute resolution. Useful for testing downsampling behaviour and tooltip accuracy on zoomed-in charts."
+          },
+          "response": []
+        },
+        {
+          "name": "Seed specific greenhouse (7 days, 30 min interval)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/dev/seed?greenhouseId={{greenhouseId}}&hours=168&intervalMinutes=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "dev", "seed"],
+              "query": [
+                { "key": "greenhouseId",    "value": "{{greenhouseId}}" },
+                { "key": "hours",           "value": "168" },
+                { "key": "intervalMinutes", "value": "30" }
+              ]
+            },
+            "description": "Seeds only the greenhouse identified by `{{greenhouseId}}`. Useful when you have multiple greenhouses and only want to populate one."
+          },
+          "response": []
+        },
+        {
+          "name": "Clear all analytics data",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/dev/seed",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "dev", "seed"]
+            },
+            "description": "⚠️ Deletes ALL rows from `parameter_history` and `greenhouse_event`. Use this to reset the database between test runs.\n\nReturns counts of deleted rows:\n```json\n{ \"deletedHistoryRows\": 864, \"deletedEvents\": 6 }\n```"
           },
           "response": []
         }

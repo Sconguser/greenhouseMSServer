@@ -3,6 +3,7 @@ package com.greenhouse.greenhouse.tasks;
 import com.greenhouse.greenhouse.models.Greenhouse;
 import com.greenhouse.greenhouse.models.Status;
 import com.greenhouse.greenhouse.repositories.GreenhouseRepository;
+import com.greenhouse.greenhouse.services.AnalyticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,9 @@ public class GreenhouseStatusScheduler {
 
     @Autowired
     private GreenhouseRepository greenhouseRepository;
+
+    @Autowired
+    private AnalyticsService analyticsService;
 
     // Run every 60 seconds
     @Scheduled(fixedRate = 60000)
@@ -35,6 +39,8 @@ public class GreenhouseStatusScheduler {
                     gh.setStatus(Status.NOT_RESPONSIVE);
                     greenhouseRepository.save(gh);
                     System.out.println("Greenhouse " + gh.getName() + " is now NOT_RESPONSIVE (Timeout)");
+                    // Record a CRASH event — device was ON and went silent unexpectedly
+                    analyticsService.recordCrash(gh.getId());
                 }
             }
         }

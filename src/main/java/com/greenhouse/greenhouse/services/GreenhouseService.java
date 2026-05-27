@@ -33,12 +33,14 @@ public class GreenhouseService {
     private final MqttPublisher mqttService;
     private final ObjectMapper objectMapper;
     private final ConfigService configService;
+    private final AnalyticsService analyticsService;
 
     @Autowired
     public GreenhouseService (GreenhouseRepository greenhouseRepository, GreenhouseMapper greenhouseMapper,
                               ZoneMapper zoneMapper, ZoneRepository zoneRepository, ParameterMapper parameterMapper,
                               MqttPublisher mqttPublisher, ObjectMapper objectMapper,
-                              @org.springframework.context.annotation.Lazy ConfigService configService)
+                              @org.springframework.context.annotation.Lazy ConfigService configService,
+                              AnalyticsService analyticsService)
     {
         this.greenhouseRepository = greenhouseRepository;
         this.greenhouseMapper = greenhouseMapper;
@@ -48,6 +50,7 @@ public class GreenhouseService {
         this.mqttService = mqttPublisher;
         this.objectMapper = objectMapper;
         this.configService = configService;
+        this.analyticsService = analyticsService;
     }
 
     public GreenhouseResponse getGreenhouse (Long id) {
@@ -193,10 +196,15 @@ public class GreenhouseService {
         // 3. Save Changes
         greenhouseRepository.save(gh);
 
-        // 4. If the device just came back online, start a sequential push sequence:
+        // 4. Record parameter history for analytics (every telemetry tick).
+        analyticsService.recordTelemetryReadings(gh, telemetry);
+
+        // 5. If the device just came back online: record a BOOT event and
+        //    start the sequential push sequence:
         //    config → (ACK) → mapping → (ACK) → model.
         //    Sending all three at once would cause multiple reboots before any file is saved.
         if (wasOffline) {
+            analyticsService.recordBoot(gh.getId());
             gh.setModelSynced(false);
             greenhouseRepository.save(gh);
             try {
