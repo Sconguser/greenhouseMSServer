@@ -13,16 +13,19 @@ public class MqttService implements MqttCallbackExtended, MqttPublisher {
     private final MqttClient client;
     private final GreenhouseService greenhouseService;
     private final ConfigService configService;
+    private final ObjectMapper objectMapper;
 
     public MqttService(@Value("${mqtt.broker}") String broker,
                        @Value("${mqtt.clientId}") String clientId,
                        @Value("${mqtt.username:}") String username,
                        @Value("${mqtt.password:}") String password,
                        @Lazy GreenhouseService greenhouseService,
-                       @Lazy ConfigService configService) throws MqttException {
+                       @Lazy ConfigService configService,
+                       ObjectMapper objectMapper) throws MqttException {
         client = new MqttClient(broker, clientId);
         this.greenhouseService = greenhouseService;
         this.configService = configService;
+        this.objectMapper = objectMapper;
         MqttConnectOptions options = new MqttConnectOptions();
         if (!username.isEmpty()) {
             options.setUserName(username);
@@ -58,7 +61,7 @@ public class MqttService implements MqttCallbackExtended, MqttPublisher {
 
     private void handleTelemetry(String payload) {
         try {
-            TelemetryGreenhouseDTO telemetry = new ObjectMapper().readValue(payload, TelemetryGreenhouseDTO.class);
+            TelemetryGreenhouseDTO telemetry = objectMapper.readValue(payload, TelemetryGreenhouseDTO.class);
             greenhouseService.updateTelemetry(telemetry);
         } catch (Exception e) {
             System.err.println("Failed to parse telemetry: " + e.getMessage());

@@ -32,7 +32,7 @@ public class Zone {
     @JsonBackReference
     private Greenhouse greenhouse;
 
-    @OneToMany(mappedBy = "zone", cascade = CascadeType.MERGE)
+    @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("zone-params")
     private List<ParameterEntity> parameters;
 
