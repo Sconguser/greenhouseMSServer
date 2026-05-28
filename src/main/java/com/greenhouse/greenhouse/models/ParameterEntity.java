@@ -1,6 +1,7 @@
 package com.greenhouse.greenhouse.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -25,12 +26,26 @@ public class ParameterEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "requested_value_updated_at")
+    private LocalDateTime requestedValueUpdatedAt;
+
+    @JsonIgnore
     public LocalDateTime getCreatedAt () {
         return createdAt;
     }
 
+    @JsonIgnore
     public LocalDateTime getUpdatedAt () {
         return updatedAt;
+    }
+
+    @JsonIgnore
+    public LocalDateTime getRequestedValueUpdatedAt () {
+        return requestedValueUpdatedAt;
+    }
+
+    public void setRequestedValueUpdatedAt (LocalDateTime requestedValueUpdatedAt) {
+        this.requestedValueUpdatedAt = requestedValueUpdatedAt;
     }
 
     private Double currentValue;

@@ -1,5 +1,6 @@
 package com.greenhouse.greenhouse.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
@@ -102,6 +103,7 @@ public class Greenhouse {
         this.zones.add(zone);
     }
 
+    @JsonIgnore
     public Status getStatus () {
         return status;
     }
@@ -129,6 +131,7 @@ public class Greenhouse {
     }
 
 
+    @JsonIgnore
     public LocalDateTime getLastUpdate () {
         return lastUpdate;
     }
@@ -137,6 +140,7 @@ public class Greenhouse {
         this.lastUpdate = lastUpdate;
     }
 
+    @JsonIgnore
     public LocalDateTime getLastPushed () {
         return lastPushed;
     }
@@ -145,21 +149,27 @@ public class Greenhouse {
         this.lastPushed = lastPushed;
     }
 
+    @JsonIgnore
     public String getDeviceConfigJson () { return deviceConfigJson; }
     public void setDeviceConfigJson (String deviceConfigJson) { this.deviceConfigJson = deviceConfigJson; }
 
+    @JsonIgnore
     public String getMappingConfigJson () { return mappingConfigJson; }
     public void setMappingConfigJson (String mappingConfigJson) { this.mappingConfigJson = mappingConfigJson; }
 
+    @JsonIgnore
     public Boolean getDeviceConfigSynced () { return deviceConfigSynced; }
     public void setDeviceConfigSynced (Boolean deviceConfigSynced) { this.deviceConfigSynced = deviceConfigSynced; }
 
+    @JsonIgnore
     public Boolean getMappingConfigSynced () { return mappingConfigSynced; }
     public void setMappingConfigSynced (Boolean mappingConfigSynced) { this.mappingConfigSynced = mappingConfigSynced; }
 
+    @JsonIgnore
     public Boolean getModelSynced () { return modelSynced; }
     public void setModelSynced (Boolean modelSynced) { this.modelSynced = modelSynced; }
 
+    @JsonIgnore
     public LocalDateTime getModelDirtyAt () { return modelDirtyAt; }
     public void setModelDirtyAt (LocalDateTime modelDirtyAt) { this.modelDirtyAt = modelDirtyAt; }
 }

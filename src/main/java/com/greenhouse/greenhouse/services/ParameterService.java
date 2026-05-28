@@ -143,6 +143,7 @@ public class ParameterService {
             if (p == null) continue;
 
             p.setRequestedValue(dto.getRequestedValue());
+            p.setRequestedValueUpdatedAt(LocalDateTime.now());
             parameterRepository.save(p);
             updatedEntities.add(p);
         }

@@ -73,7 +73,11 @@ public class GreenhouseController {
 
     @PostMapping("/{id}/push")
     public ResponseEntity<?> pushModelToDevice(@PathVariable Long id) {
-        greenhouseService.sendGreenhouseDataToGreenhouse(id);
-        return ResponseEntity.ok("Model pushed to greenhouse " + id);
+        try {
+            greenhouseService.sendGreenhouseDataToGreenhouse(id);
+            return ResponseEntity.ok("Model pushed to greenhouse " + id);
+        } catch (Exception e) {
+            return ResponseEntity.status(503).body("Push failed: MQTT broker is not available");
+        }
     }
 }

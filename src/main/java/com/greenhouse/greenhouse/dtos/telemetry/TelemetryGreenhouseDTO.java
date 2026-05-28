@@ -4,5 +4,6 @@ import java.util.List;
 
 public class TelemetryGreenhouseDTO {
     public Long id;
+    public List<TelemetryParameterDTO> parameters;
     public List<TelemetryZoneDTO> zones;
 }

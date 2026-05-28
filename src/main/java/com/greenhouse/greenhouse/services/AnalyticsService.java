@@ -89,10 +89,24 @@ public class AnalyticsService {
     @Transactional
     public void recordTelemetryReadings(Greenhouse gh, TelemetryGreenhouseDTO telemetry) {
         if (!isEnabled()) return;
-        if (telemetry.zones == null) return;
-
         LocalDateTime now = LocalDateTime.now();
         List<ParameterHistoryEntry> entries = new ArrayList<>();
+
+        // Greenhouse-level parameters
+        if (telemetry.parameters != null) {
+            for (TelemetryParameterDTO pDto : telemetry.parameters) {
+                if (pDto.val == null) continue;
+                gh.getParameters().stream()
+                        .filter(p -> p.getId().equals(pDto.id))
+                        .findFirst()
+                        .ifPresent(p -> entries.add(buildEntry(p, gh.getId(), pDto.val, now)));
+            }
+        }
+
+        if (telemetry.zones == null) {
+            if (!entries.isEmpty()) historyRepo.saveAll(entries);
+            return;
+        }
 
         for (TelemetryZoneDTO zDto : telemetry.zones) {
             Zone zone = gh.getZones().stream()

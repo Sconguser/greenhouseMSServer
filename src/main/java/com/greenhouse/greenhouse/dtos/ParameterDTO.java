@@ -9,6 +9,7 @@ public class ParameterDTO {
     private String name;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime requestedValueUpdatedAt;
     private boolean mutable;
     private Double currentValue;
     private Double requestedValue;
@@ -103,5 +104,13 @@ public class ParameterDTO {
 
     public void setUpdatedAt (LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getRequestedValueUpdatedAt () {
+        return requestedValueUpdatedAt;
+    }
+
+    public void setRequestedValueUpdatedAt (LocalDateTime requestedValueUpdatedAt) {
+        this.requestedValueUpdatedAt = requestedValueUpdatedAt;
     }
 }

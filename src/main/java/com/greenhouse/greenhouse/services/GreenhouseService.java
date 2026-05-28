@@ -127,8 +127,8 @@ public class GreenhouseService {
         greenhouseRepository.save(greenhouse);
     }
 
-    @Transactional
-    public void sendGreenhouseDataToGreenhouse(Long greenhouseId) {
+    @Transactional(rollbackFor = Exception.class)
+    public void sendGreenhouseDataToGreenhouse(Long greenhouseId) throws Exception {
         Greenhouse greenhouse = getGreenhouseEntity(greenhouseId);
         greenhouse.setLastPushed(LocalDateTime.now());
         greenhouse.setModelSynced(false);
@@ -146,15 +146,11 @@ public class GreenhouseService {
         });
     }
 
-    public void pushModelToDevice(Greenhouse greenhouse) {
+    public void pushModelToDevice(Greenhouse greenhouse) throws Exception {
         if (greenhouse.getIpAddress() == null || greenhouse.getIpAddress().isBlank()) return;
-        try {
-            String jsonPayload = objectMapper.writeValueAsString(greenhouse);
-            String topic = "greenhouse/" + greenhouse.getIpAddress() + "/set/model";
-            mqttService.sendCommand(topic, jsonPayload);
-        } catch (Exception e) {
-            System.err.println("Failed to push model to device: " + e.getMessage());
-        }
+        String jsonPayload = objectMapper.writeValueAsString(greenhouse);
+        String topic = "greenhouse/" + greenhouse.getIpAddress() + "/set/model";
+        mqttService.sendCommand(topic, jsonPayload);
     }
 
     @Transactional
@@ -170,7 +166,10 @@ public class GreenhouseService {
         if (wasOffline) {
             gh.setStatus(Status.ON);
         }
-        // 2. Update Zones
+        // 2. Update greenhouse-level parameters
+        updateParams(gh.getParameters(), telemetry.parameters);
+
+        // 3. Update Zones
         if (telemetry.zones != null) {
             for (TelemetryZoneDTO zDto : telemetry.zones) {
                 // Find matching zone in the entity list

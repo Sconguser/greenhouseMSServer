@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 public class MqttService implements MqttCallbackExtended, MqttPublisher {
 
     private final MqttClient client;
+    private final MqttConnectOptions connectOptions;
     private final GreenhouseService greenhouseService;
     private final ConfigService configService;
     private final ObjectMapper objectMapper;
@@ -26,16 +27,16 @@ public class MqttService implements MqttCallbackExtended, MqttPublisher {
         this.greenhouseService = greenhouseService;
         this.configService = configService;
         this.objectMapper = objectMapper;
-        MqttConnectOptions options = new MqttConnectOptions();
+        connectOptions = new MqttConnectOptions();
         if (!username.isEmpty()) {
-            options.setUserName(username);
-            options.setPassword(password.toCharArray());
+            connectOptions.setUserName(username);
+            connectOptions.setPassword(password.toCharArray());
         }
-        options.setCleanSession(true);
-        options.setAutomaticReconnect(true);
+        connectOptions.setCleanSession(true);
+        connectOptions.setAutomaticReconnect(true);
         client.setCallback(this);
         try {
-            client.connect(options);
+            client.connect(connectOptions);
         } catch (MqttException e) {
             System.err.println("MQTT broker unavailable at startup (will retry): " + e.getMessage());
         }
@@ -76,6 +77,10 @@ public class MqttService implements MqttCallbackExtended, MqttPublisher {
 
     @Override
     public void sendCommand(String topic, String payload) throws MqttException {
+        if (!client.isConnected()) {
+            System.out.println("MQTT not connected, attempting reconnect...");
+            client.connect(connectOptions);
+        }
         MqttMessage message = new MqttMessage(payload.getBytes());
         message.setQos(1);
         message.setRetained(false);
