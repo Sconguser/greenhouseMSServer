@@ -22,4 +22,8 @@ public interface GreenhouseEventRepository extends JpaRepository<GreenhouseEvent
     @Modifying
     @Query("DELETE FROM GreenhouseEvent e WHERE e.occurredAt < :cutoff")
     int deleteByOccurredAtBefore(@Param("cutoff") LocalDateTime cutoff);
+
+    @Modifying
+    @Query("DELETE FROM GreenhouseEvent e WHERE e.greenhouse.id = :greenhouseId")
+    int deleteByGreenhouseId(@Param("greenhouseId") Long greenhouseId);
 }

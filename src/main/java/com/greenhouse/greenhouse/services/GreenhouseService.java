@@ -102,7 +102,12 @@ public class GreenhouseService {
         greenhouseRepository.save(greenhouse);
     }
 
+    @Transactional
     public void deleteGreenhouse (Long id) {
+        // Analytics rows (greenhouse_event has a non-null FK to greenhouse, and
+        // parameter_history is keyed by greenhouse_id) must be removed first,
+        // otherwise the delete violates the greenhouse_event foreign key.
+        analyticsService.purgeGreenhouseData(id);
         greenhouseRepository.deleteById(id);
     }
 

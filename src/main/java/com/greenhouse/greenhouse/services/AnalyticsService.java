@@ -79,6 +79,19 @@ public class AnalyticsService {
         });
     }
 
+    /**
+     * Removes all analytics rows (events + parameter history) belonging to a
+     * greenhouse. Must run before the greenhouse itself is deleted, otherwise
+     * the {@code greenhouse_event.greenhouse_id} foreign key blocks the delete.
+     */
+    @Transactional
+    public void purgeGreenhouseData(Long greenhouseId) {
+        int events = eventRepo.deleteByGreenhouseId(greenhouseId);
+        int history = historyRepo.deleteByGreenhouseId(greenhouseId);
+        System.out.printf("[ANALYTICS] Purged %d events and %d history rows for greenhouse %d%n",
+                events, history, greenhouseId);
+    }
+
     // ─── Parameter history recording ─────────────────────────────────────────────
 
     /**

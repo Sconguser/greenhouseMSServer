@@ -20,4 +20,8 @@ public interface ParameterHistoryRepository extends JpaRepository<ParameterHisto
     @Modifying
     @Query("DELETE FROM ParameterHistoryEntry p WHERE p.recordedAt < :cutoff")
     int deleteByRecordedAtBefore(@Param("cutoff") LocalDateTime cutoff);
+
+    @Modifying
+    @Query("DELETE FROM ParameterHistoryEntry p WHERE p.greenhouseId = :greenhouseId")
+    int deleteByGreenhouseId(@Param("greenhouseId") Long greenhouseId);
 }
