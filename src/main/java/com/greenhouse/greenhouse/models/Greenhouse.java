@@ -36,6 +36,11 @@ public class Greenhouse {
     @Column(name = "mapping_config", columnDefinition = "TEXT")
     private String mappingConfigJson;
 
+    // Monotonic counter for assigning stable ids to devices stored inside
+    // deviceConfigJson. Never reused, so a deleted device's id stays retired.
+    @Column(name = "next_device_id")
+    private Integer nextDeviceId = 1;
+
     @Column(name = "device_config_synced")
     private Boolean deviceConfigSynced = null;  // null=never pushed, false=pending ACK, true=synced
 
@@ -172,4 +177,8 @@ public class Greenhouse {
     @JsonIgnore
     public LocalDateTime getModelDirtyAt () { return modelDirtyAt; }
     public void setModelDirtyAt (LocalDateTime modelDirtyAt) { this.modelDirtyAt = modelDirtyAt; }
+
+    @JsonIgnore
+    public Integer getNextDeviceId () { return nextDeviceId; }
+    public void setNextDeviceId (Integer nextDeviceId) { this.nextDeviceId = nextDeviceId; }
 }

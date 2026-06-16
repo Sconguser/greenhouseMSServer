@@ -46,8 +46,9 @@ public class ConfigService {
     }
 
     @Transactional
-    public void saveAndPushDeviceConfig(Long greenhouseId, List<DeviceConfigDTO> dtos) throws Exception {
+    public List<DeviceConfigDTO> saveAndPushDeviceConfig(Long greenhouseId, List<DeviceConfigDTO> dtos) throws Exception {
         Greenhouse gh = require(greenhouseId);
+        assignDeviceIds(gh, dtos);
         String json = objectMapper.writeValueAsString(dtos);
         gh.setDeviceConfigJson(json);
         gh.setDeviceConfigSynced(false);
@@ -57,6 +58,30 @@ public class ConfigService {
         } catch (Exception e) {
             System.err.println("[CONFIG] Device config saved to DB but MQTT push failed (will retry on reconnect): " + e.getMessage());
         }
+        // Return the id-stamped list so the client can immediately reference
+        // devices by id when building mappings — no stale/id-less state.
+        return dtos;
+    }
+
+    /**
+     * Stamps a stable, server-generated id onto every device that doesn't have
+     * one, using the greenhouse's monotonic counter. Existing ids are kept; the
+     * counter is advanced past any client-supplied id so ids never collide or
+     * get reused after a deletion.
+     */
+    private void assignDeviceIds(Greenhouse gh, List<DeviceConfigDTO> dtos) {
+        int next = gh.getNextDeviceId() != null ? gh.getNextDeviceId() : 1;
+        for (DeviceConfigDTO dto : dtos) {
+            if (dto.id != null && dto.id >= next) {
+                next = dto.id + 1;
+            }
+        }
+        for (DeviceConfigDTO dto : dtos) {
+            if (dto.id == null) {
+                dto.id = next++;
+            }
+        }
+        gh.setNextDeviceId(next);
     }
 
     // -------------------------------------------------------------------------

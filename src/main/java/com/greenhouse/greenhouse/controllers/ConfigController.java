@@ -29,10 +29,10 @@ public class ConfigController {
     }
 
     @PostMapping("/devices")
-    public ResponseEntity<?> pushDeviceConfig(@PathVariable Long id,
+    public ResponseEntity<List<DeviceConfigDTO>> pushDeviceConfig(@PathVariable Long id,
                                               @RequestBody List<DeviceConfigDTO> dtos) throws Exception {
-        configService.saveAndPushDeviceConfig(id, dtos);
-        return ResponseEntity.ok("Device config saved and pushed to greenhouse " + id);
+        // Returns the saved devices with their server-assigned ids.
+        return ResponseEntity.ok(configService.saveAndPushDeviceConfig(id, dtos));
     }
 
     // -------------------------------------------------------------------------
