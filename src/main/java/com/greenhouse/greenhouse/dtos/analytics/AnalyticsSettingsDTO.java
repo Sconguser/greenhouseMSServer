@@ -6,6 +6,7 @@ public record AnalyticsSettingsDTO(
         boolean analyticsEnabled,
         int historyRetentionDays,
         int eventsRetentionDays,
+        int logsRetentionDays,
         int cleanupIntervalHours,
         LocalDateTime lastCleanup
 ) {}

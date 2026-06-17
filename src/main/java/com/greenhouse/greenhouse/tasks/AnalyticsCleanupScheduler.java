@@ -4,6 +4,7 @@ import com.greenhouse.greenhouse.models.AnalyticsSettings;
 import com.greenhouse.greenhouse.repositories.AnalyticsSettingsRepository;
 import com.greenhouse.greenhouse.repositories.GreenhouseEventRepository;
 import com.greenhouse.greenhouse.repositories.ParameterHistoryRepository;
+import com.greenhouse.greenhouse.services.AnalyticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,12 @@ public class AnalyticsCleanupScheduler {
 
     @Autowired
     private AnalyticsSettingsRepository settingsRepo;
+
+    @Autowired
+    private AnalyticsService analyticsService;
+
+    /** Hard ceiling on stored log rows per greenhouse, independent of time retention. */
+    private static final int MAX_LOGS_PER_GREENHOUSE = 1000;
 
     /** Check every hour whether cleanup is due. */
     @Scheduled(fixedRate = 3_600_000)
@@ -66,6 +73,10 @@ public class AnalyticsCleanupScheduler {
             System.out.printf("[ANALYTICS CLEANUP] Removed %d event entries older than %s%n",
                     deleted, eventsCutoff);
         }
+
+        // Device logs: time retention + per-greenhouse row cap
+        analyticsService.cleanupDeviceLogs(
+                settings.getLogsRetentionDays(), MAX_LOGS_PER_GREENHOUSE, now);
 
         // Persist the updated last-run timestamp
         settings.setLastCleanup(now);

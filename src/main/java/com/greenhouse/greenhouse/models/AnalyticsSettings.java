@@ -32,6 +32,10 @@ public class AnalyticsSettings {
     @Column(name = "events_retention_days", nullable = false)
     private int eventsRetentionDays = 365;
 
+    /** Delete device_log rows older than this. Logs are noisy, so the default is short. */
+    @Column(name = "logs_retention_days", nullable = false)
+    private int logsRetentionDays = 7;
+
     /**
      * How often (in hours) the cleanup job should delete stale data.
      * The @Scheduled checker fires every hour; it uses this value plus
@@ -60,6 +64,11 @@ public class AnalyticsSettings {
     public int getEventsRetentionDays() { return eventsRetentionDays; }
     public void setEventsRetentionDays(int eventsRetentionDays) {
         this.eventsRetentionDays = eventsRetentionDays;
+    }
+
+    public int getLogsRetentionDays() { return logsRetentionDays; }
+    public void setLogsRetentionDays(int logsRetentionDays) {
+        this.logsRetentionDays = logsRetentionDays;
     }
 
     public int getCleanupIntervalHours() { return cleanupIntervalHours; }

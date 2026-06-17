@@ -1,5 +1,6 @@
 package com.greenhouse.greenhouse.services;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greenhouse.greenhouse.dtos.telemetry.TelemetryGreenhouseDTO;
 import org.eclipse.paho.client.mqttv3.*;
@@ -14,6 +15,7 @@ public class MqttService implements MqttCallbackExtended, MqttPublisher {
     private final MqttConnectOptions connectOptions;
     private final GreenhouseService greenhouseService;
     private final ConfigService configService;
+    private final AnalyticsService analyticsService;
     private final ObjectMapper objectMapper;
 
     public MqttService(@Value("${mqtt.broker}") String broker,
@@ -22,10 +24,12 @@ public class MqttService implements MqttCallbackExtended, MqttPublisher {
                        @Value("${mqtt.password:}") String password,
                        @Lazy GreenhouseService greenhouseService,
                        @Lazy ConfigService configService,
+                       @Lazy AnalyticsService analyticsService,
                        ObjectMapper objectMapper) throws MqttException {
         client = new MqttClient(broker, clientId);
         this.greenhouseService = greenhouseService;
         this.configService = configService;
+        this.analyticsService = analyticsService;
         this.objectMapper = objectMapper;
         connectOptions = new MqttConnectOptions();
         if (!username.isEmpty()) {
@@ -48,6 +52,9 @@ public class MqttService implements MqttCallbackExtended, MqttPublisher {
 
         if (topic.endsWith("/status")) {
             handleTelemetry(payload);
+        } else if (topic.endsWith("/log")) {
+            String ip = extractIp(topic);
+            if (ip != null) handleDeviceLog(ip, payload);
         } else if (topic.endsWith("/ack/config")) {
             String ip = extractIp(topic);
             if (ip != null) configService.markDeviceConfigSynced(ip);
@@ -66,6 +73,25 @@ public class MqttService implements MqttCallbackExtended, MqttPublisher {
             greenhouseService.updateTelemetry(telemetry);
         } catch (Exception e) {
             System.err.println("Failed to parse telemetry: " + e.getMessage());
+        }
+    }
+
+    // Device log payload: {"lvl":..,"code":..,"msg":..,"rep":?,"up":sec,"heap":bytes}
+    private void handleDeviceLog(String ip, String payload) {
+        try {
+            JsonNode n = objectMapper.readTree(payload);
+            String level = n.path("lvl").asText("INFO");
+            String code = n.path("code").asText(null);
+            String message = n.path("msg").asText("");
+            // The board folds suppressed duplicates into a "rep" count; surface it inline.
+            if (n.hasNonNull("rep") && n.path("rep").asInt() > 0) {
+                message = message + " (×" + (n.path("rep").asInt() + 1) + ")";
+            }
+            Integer heap = n.hasNonNull("heap") ? n.path("heap").asInt() : null;
+            Long uptime = n.hasNonNull("up") ? n.path("up").asLong() : null;
+            analyticsService.recordDeviceLogByIp(ip, level, code, message, heap, uptime);
+        } catch (Exception e) {
+            System.err.println("Failed to parse device log: " + e.getMessage());
         }
     }
 
@@ -98,7 +124,8 @@ public class MqttService implements MqttCallbackExtended, MqttPublisher {
         try {
             client.subscribe("greenhouse/+/status", 1);
             client.subscribe("greenhouse/+/ack/+", 1);
-            System.out.println("MQTT " + (reconnect ? "re" : "") + "connected – subscribed to status and ack topics");
+            client.subscribe("greenhouse/+/log", 0);
+            System.out.println("MQTT " + (reconnect ? "re" : "") + "connected – subscribed to status, ack and log topics");
         } catch (MqttException e) {
             System.err.println("MQTT subscribe failed after connect: " + e.getMessage());
         }

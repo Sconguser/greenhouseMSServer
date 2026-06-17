@@ -1,6 +1,7 @@
 package com.greenhouse.greenhouse.controllers;
 
 import com.greenhouse.greenhouse.dtos.analytics.AnalyticsSettingsDTO;
+import com.greenhouse.greenhouse.dtos.analytics.DeviceLogDTO;
 import com.greenhouse.greenhouse.dtos.analytics.GreenhouseEventDTO;
 import com.greenhouse.greenhouse.dtos.analytics.GreenhouseStatsDTO;
 import com.greenhouse.greenhouse.dtos.analytics.ParameterHistoryResponseDTO;
@@ -41,6 +42,22 @@ public class AnalyticsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
         return ResponseEntity.ok(analyticsService.getGreenhouseEvents(id, from, to));
+    }
+
+    /**
+     * Serial-monitor feed: newest-first device logs merged with BOOT/CRASH events.
+     *
+     * @param since optional lower time bound (defaults to the last 24 h)
+     * @param limit max rows returned (default 200)
+     */
+    @GetMapping("/greenhouse/{id}/logs")
+    public ResponseEntity<List<DeviceLogDTO>> getLogs(
+            @PathVariable Long id,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime since,
+            @RequestParam(defaultValue = "200") int limit) {
+        LocalDateTime from = since != null ? since : LocalDateTime.now().minusHours(24);
+        return ResponseEntity.ok(analyticsService.getDeviceLogs(id, from, limit));
     }
 
     @GetMapping("/greenhouse/{id}/stats")

@@ -1,6 +1,7 @@
 package com.greenhouse.greenhouse.services;
 
 import com.greenhouse.greenhouse.dtos.analytics.AnalyticsSettingsDTO;
+import com.greenhouse.greenhouse.dtos.analytics.DeviceLogDTO;
 import com.greenhouse.greenhouse.dtos.analytics.GreenhouseEventDTO;
 import com.greenhouse.greenhouse.dtos.analytics.GreenhouseStatsDTO;
 import com.greenhouse.greenhouse.dtos.analytics.ParameterHistoryPointDTO;
@@ -11,10 +12,13 @@ import com.greenhouse.greenhouse.dtos.telemetry.TelemetryParameterDTO;
 import com.greenhouse.greenhouse.dtos.telemetry.TelemetryZoneDTO;
 import com.greenhouse.greenhouse.models.*;
 import com.greenhouse.greenhouse.repositories.AnalyticsSettingsRepository;
+import com.greenhouse.greenhouse.repositories.DeviceLogRepository;
 import com.greenhouse.greenhouse.repositories.GreenhouseEventRepository;
 import com.greenhouse.greenhouse.repositories.GreenhouseRepository;
 import com.greenhouse.greenhouse.repositories.ParameterHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,16 +31,19 @@ public class AnalyticsService {
 
     private final GreenhouseEventRepository eventRepo;
     private final ParameterHistoryRepository historyRepo;
+    private final DeviceLogRepository deviceLogRepo;
     private final GreenhouseRepository greenhouseRepository;
     private final AnalyticsSettingsRepository settingsRepo;
 
     @Autowired
     public AnalyticsService(GreenhouseEventRepository eventRepo,
                              ParameterHistoryRepository historyRepo,
+                             DeviceLogRepository deviceLogRepo,
                              GreenhouseRepository greenhouseRepository,
                              AnalyticsSettingsRepository settingsRepo) {
         this.eventRepo = eventRepo;
         this.historyRepo = historyRepo;
+        this.deviceLogRepo = deviceLogRepo;
         this.greenhouseRepository = greenhouseRepository;
         this.settingsRepo = settingsRepo;
     }
@@ -88,8 +95,99 @@ public class AnalyticsService {
     public void purgeGreenhouseData(Long greenhouseId) {
         int events = eventRepo.deleteByGreenhouseId(greenhouseId);
         int history = historyRepo.deleteByGreenhouseId(greenhouseId);
-        System.out.printf("[ANALYTICS] Purged %d events and %d history rows for greenhouse %d%n",
-                events, history, greenhouseId);
+        int logs = deviceLogRepo.deleteByGreenhouseId(greenhouseId);
+        System.out.printf("[ANALYTICS] Purged %d events, %d history rows and %d logs for greenhouse %d%n",
+                events, history, logs, greenhouseId);
+    }
+
+    // ─── Device logs ──────────────────────────────────────────────────────────────
+
+    /** Persists a device-emitted log line. Resolves the greenhouse by its IP. */
+    @Transactional
+    public void recordDeviceLogByIp(String ip, String level, String code, String message,
+                                    Integer freeHeap, Long deviceUptime) {
+        greenhouseRepository.findByIpAddress(ip).ifPresentOrElse(
+                gh -> recordDeviceLog(gh.getId(), level, code, message, freeHeap, deviceUptime),
+                () -> System.err.printf("[LOG] Dropping log from unknown device IP %s%n", ip));
+    }
+
+    @Transactional
+    public void recordDeviceLog(Long greenhouseId, String level, String code, String message,
+                                Integer freeHeap, Long deviceUptime) {
+        DeviceLog log = new DeviceLog();
+        log.setGreenhouseId(greenhouseId);
+        log.setLevel(truncate(level == null || level.isBlank() ? "INFO" : level, 8));
+        log.setCode(truncate(code, 64));
+        log.setMessage(truncate(message, 512));
+        log.setFreeHeap(freeHeap);
+        log.setDeviceUptime(deviceUptime);
+        log.setReceivedAt(LocalDateTime.now());
+        deviceLogRepo.save(log);
+    }
+
+    /**
+     * Returns the newest {@code limit} log lines for the serial-monitor view,
+     * merging device logs with BOOT/CRASH lifecycle events into one timeline.
+     */
+    @Transactional(readOnly = true)
+    public List<DeviceLogDTO> getDeviceLogs(Long greenhouseId, LocalDateTime since, int limit) {
+        if (limit <= 0) limit = 200;
+        Pageable page = PageRequest.of(0, limit);
+
+        List<DeviceLogDTO> merged = new ArrayList<>();
+
+        deviceLogRepo
+                .findByGreenhouseIdAndReceivedAtAfterOrderByReceivedAtDesc(greenhouseId, since, page)
+                .forEach(d -> merged.add(new DeviceLogDTO(
+                        d.getId(), "DEVICE", d.getLevel(), d.getCode(), d.getMessage(),
+                        d.getFreeHeap(), d.getDeviceUptime(), d.getReceivedAt())));
+
+        eventRepo
+                .findByGreenhouseIdAndOccurredAtBetweenOrderByOccurredAtDesc(
+                        greenhouseId, since, LocalDateTime.now())
+                .forEach(e -> merged.add(new DeviceLogDTO(
+                        e.getId(), "EVENT",
+                        e.getEventType() == GreenhouseEventType.CRASH ? "ERROR" : "INFO",
+                        e.getEventType().name(), e.getDetails(),
+                        null, null, e.getOccurredAt())));
+
+        merged.sort((a, b) -> b.timestamp().compareTo(a.timestamp()));
+        return merged.size() > limit ? merged.subList(0, limit) : merged;
+    }
+
+    /**
+     * Enforces device-log retention: deletes rows older than {@code retentionDays}
+     * (when > 0) and trims each greenhouse to at most {@code maxPerGreenhouse} rows.
+     * Called by the cleanup scheduler.
+     */
+    @Transactional
+    public void cleanupDeviceLogs(int retentionDays, int maxPerGreenhouse, LocalDateTime now) {
+        if (retentionDays > 0) {
+            int deleted = deviceLogRepo.deleteByReceivedAtBefore(now.minusDays(retentionDays));
+            if (deleted > 0) {
+                System.out.printf("[ANALYTICS CLEANUP] Removed %d device-log rows past retention%n", deleted);
+            }
+        }
+        if (maxPerGreenhouse <= 0) return;
+
+        Pageable nth = PageRequest.of(maxPerGreenhouse - 1, 1); // the maxPerGreenhouse-th newest row
+        for (var gh : greenhouseRepository.findAll()) {
+            Long id = gh.getId();
+            if (deviceLogRepo.countByGreenhouseId(id) <= maxPerGreenhouse) continue;
+            List<DeviceLog> boundary = deviceLogRepo.findByGreenhouseIdOrderByReceivedAtDesc(id, nth);
+            if (boundary.isEmpty()) continue;
+            LocalDateTime cutoff = boundary.get(0).getReceivedAt();
+            int trimmed = deviceLogRepo.deleteByGreenhouseIdAndReceivedAtBefore(id, cutoff);
+            if (trimmed > 0) {
+                System.out.printf("[ANALYTICS CLEANUP] Trimmed %d device-log rows over cap for greenhouse %d%n",
+                        trimmed, id);
+            }
+        }
+    }
+
+    private static String truncate(String s, int max) {
+        if (s == null) return null;
+        return s.length() <= max ? s : s.substring(0, max);
     }
 
     // ─── Parameter history recording ─────────────────────────────────────────────
@@ -255,6 +353,7 @@ public class AnalyticsService {
         s.setAnalyticsEnabled(dto.analyticsEnabled());
         s.setHistoryRetentionDays(dto.historyRetentionDays());
         s.setEventsRetentionDays(dto.eventsRetentionDays());
+        s.setLogsRetentionDays(dto.logsRetentionDays());
         s.setCleanupIntervalHours(dto.cleanupIntervalHours());
         // lastCleanup is managed by the scheduler, never overwritten here
         settingsRepo.save(s);
@@ -275,6 +374,7 @@ public class AnalyticsService {
                 s.isAnalyticsEnabled(),
                 s.getHistoryRetentionDays(),
                 s.getEventsRetentionDays(),
+                s.getLogsRetentionDays(),
                 s.getCleanupIntervalHours(),
                 s.getLastCleanup()
         );
