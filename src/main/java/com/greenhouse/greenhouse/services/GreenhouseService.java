@@ -18,6 +18,7 @@ import com.greenhouse.greenhouse.responses.GreenhouseResponse;
 import com.greenhouse.greenhouse.responses.ZoneResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -143,7 +144,16 @@ public class GreenhouseService {
         greenhouse.setModelSynced(false);
         greenhouse.setModelDirtyAt(null);
         greenhouseRepository.save(greenhouse);
-        pushModelToDevice(greenhouse);
+        // Consistent with config/mapping push: persist the intent (modelSynced
+        // = false) and treat a broker-down as "queued" — the reconnect sequence
+        // re-pushes the model once the device is back. Non-MQTT failures still
+        // propagate so genuine bugs aren't masked.
+        try {
+            pushModelToDevice(greenhouse);
+        } catch (MqttException e) {
+            System.err.println("[MODEL] Model saved to DB but MQTT push failed "
+                    + "(will retry on reconnect): " + e.getMessage());
+        }
     }
 
     @Transactional

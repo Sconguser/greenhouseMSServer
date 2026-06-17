@@ -7,11 +7,13 @@ import com.greenhouse.greenhouse.responses.GreenhouseResponse;
 import com.greenhouse.greenhouse.responses.ZoneResponse;
 import com.greenhouse.greenhouse.services.GreenhouseService;
 import com.greenhouse.greenhouse.services.ParameterService;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/greenhouse")
@@ -75,9 +77,19 @@ public class GreenhouseController {
     public ResponseEntity<?> pushModelToDevice(@PathVariable Long id) {
         try {
             greenhouseService.sendGreenhouseDataToGreenhouse(id);
-            return ResponseEntity.ok("Model pushed to greenhouse " + id);
+            return ResponseEntity.ok(Map.of("message", "Model pushed to greenhouse " + id));
+        } catch (MqttException e) {
+            // The broker (mosquitto) is genuinely unreachable.
+            System.err.println("[PUSH] MQTT publish failed for greenhouse " + id + ": " + e.getMessage());
+            return ResponseEntity.status(503)
+                    .body(Map.of("message", "MQTT broker is not available"));
         } catch (Exception e) {
-            return ResponseEntity.status(503).body("Push failed: MQTT broker is not available");
+            // Any other failure (serialization, data, etc.) — surface the real
+            // cause instead of masking everything as an MQTT problem.
+            System.err.println("[PUSH] Model push failed for greenhouse " + id + ": " + e);
+            e.printStackTrace();
+            return ResponseEntity.status(500)
+                    .body(Map.of("message", "Model push failed: " + e.getMessage()));
         }
     }
 }

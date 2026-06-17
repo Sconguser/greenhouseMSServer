@@ -12,6 +12,7 @@ import com.greenhouse.greenhouse.services.AnalyticsService;
 import com.greenhouse.greenhouse.services.ConfigService;
 import com.greenhouse.greenhouse.services.GreenhouseService;
 import com.greenhouse.greenhouse.services.MqttPublisher;
+import com.greenhouse.greenhouse.services.PlantHealthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +46,7 @@ class TelemetryUpdateServiceTest {
     @Mock ObjectMapper objectMapper;
     @Mock ConfigService configService;
     @Mock AnalyticsService analyticsService;
+    @Mock PlantHealthService plantHealthService;
 
     GreenhouseService greenhouseService;
 
@@ -60,7 +62,7 @@ class TelemetryUpdateServiceTest {
         greenhouseService = new GreenhouseService(
             greenhouseRepository, greenhouseMapper, zoneMapper,
             zoneRepository, parameterMapper, mqttPublisher, objectMapper, configService,
-            analyticsService
+            analyticsService, plantHealthService
         );
 
         zoneParam = new ParameterEntity();
