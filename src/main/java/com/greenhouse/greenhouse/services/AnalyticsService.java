@@ -354,6 +354,7 @@ public class AnalyticsService {
         s.setHistoryRetentionDays(dto.historyRetentionDays());
         s.setEventsRetentionDays(dto.eventsRetentionDays());
         s.setLogsRetentionDays(dto.logsRetentionDays());
+        s.setPlantCheckDebounceMinutes(dto.plantCheckDebounceMinutes());
         s.setCleanupIntervalHours(dto.cleanupIntervalHours());
         // lastCleanup is managed by the scheduler, never overwritten here
         settingsRepo.save(s);
@@ -375,6 +376,7 @@ public class AnalyticsService {
                 s.getHistoryRetentionDays(),
                 s.getEventsRetentionDays(),
                 s.getLogsRetentionDays(),
+                s.getPlantCheckDebounceMinutes(),
                 s.getCleanupIntervalHours(),
                 s.getLastCleanup()
         );

@@ -36,6 +36,10 @@ public class AnalyticsSettings {
     @Column(name = "logs_retention_days", nullable = false)
     private int logsRetentionDays = 7;
 
+    /** How long a plant requirement must stay breached before an alert is raised. */
+    @Column(name = "plant_check_debounce_minutes", nullable = false)
+    private int plantCheckDebounceMinutes = 10;
+
     /**
      * How often (in hours) the cleanup job should delete stale data.
      * The @Scheduled checker fires every hour; it uses this value plus
@@ -69,6 +73,11 @@ public class AnalyticsSettings {
     public int getLogsRetentionDays() { return logsRetentionDays; }
     public void setLogsRetentionDays(int logsRetentionDays) {
         this.logsRetentionDays = logsRetentionDays;
+    }
+
+    public int getPlantCheckDebounceMinutes() { return plantCheckDebounceMinutes; }
+    public void setPlantCheckDebounceMinutes(int plantCheckDebounceMinutes) {
+        this.plantCheckDebounceMinutes = plantCheckDebounceMinutes;
     }
 
     public int getCleanupIntervalHours() { return cleanupIntervalHours; }

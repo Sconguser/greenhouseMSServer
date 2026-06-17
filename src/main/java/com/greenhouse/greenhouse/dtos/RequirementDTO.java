@@ -2,6 +2,7 @@ package com.greenhouse.greenhouse.dtos;
 
 
 import com.greenhouse.greenhouse.models.ParameterType;
+import com.greenhouse.greenhouse.models.RequirementKind;
 
 public class RequirementDTO {
     private Long id;
@@ -11,6 +12,8 @@ public class RequirementDTO {
     private String unit;
 
     private ParameterType type;
+
+    private RequirementKind kind;
 
 //    public Plant getPlant () {
 //        return plant;
@@ -66,5 +69,13 @@ public class RequirementDTO {
 
     public void setType (ParameterType type) {
         this.type = type;
+    }
+
+    public RequirementKind getKind () {
+        return kind;
+    }
+
+    public void setKind (RequirementKind kind) {
+        this.kind = kind;
     }
 }

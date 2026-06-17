@@ -28,6 +28,7 @@ public class RequirementService {
                 .orElseThrow(() -> new PlantNotFoundException("Plant wiht id " + plantId + " was not found"));
         RequirementEntity entity = requirementMapper.toEntity(requirementDTO);
         entity.setPlant(plant);
+        entity.setKind(entity.getKind()); // materialize THRESHOLD default when DTO omits kind
         RequirementEntity saved = requirementRepository.save(entity);
         return requirementMapper.toDto(saved);
     }

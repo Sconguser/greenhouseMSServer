@@ -34,13 +34,15 @@ public class GreenhouseService {
     private final ObjectMapper objectMapper;
     private final ConfigService configService;
     private final AnalyticsService analyticsService;
+    private final PlantHealthService plantHealthService;
 
     @Autowired
     public GreenhouseService (GreenhouseRepository greenhouseRepository, GreenhouseMapper greenhouseMapper,
                               ZoneMapper zoneMapper, ZoneRepository zoneRepository, ParameterMapper parameterMapper,
                               MqttPublisher mqttPublisher, ObjectMapper objectMapper,
                               @org.springframework.context.annotation.Lazy ConfigService configService,
-                              AnalyticsService analyticsService)
+                              AnalyticsService analyticsService,
+                              PlantHealthService plantHealthService)
     {
         this.greenhouseRepository = greenhouseRepository;
         this.greenhouseMapper = greenhouseMapper;
@@ -51,6 +53,7 @@ public class GreenhouseService {
         this.objectMapper = objectMapper;
         this.configService = configService;
         this.analyticsService = analyticsService;
+        this.plantHealthService = plantHealthService;
     }
 
     public GreenhouseResponse getGreenhouse (Long id) {
@@ -108,6 +111,7 @@ public class GreenhouseService {
         // parameter_history is keyed by greenhouse_id) must be removed first,
         // otherwise the delete violates the greenhouse_event foreign key.
         analyticsService.purgeGreenhouseData(id);
+        plantHealthService.purgeGreenhouse(id);
         greenhouseRepository.deleteById(id);
     }
 

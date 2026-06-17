@@ -79,21 +79,4 @@ public class PlantService {
         plantRepository.save(plant);
         return plantMapper.toResponse(plant);
     }
-
-
-    /// TODO: poprawić af
-    public boolean checkIfRequirementsAreMet (Long plantId, List<ParameterEntity> parameters) {
-        Plant plant = plantRepository.findById(plantId)
-                .orElseThrow(() -> new PlantNotFoundException("Plant not found"));
-        List<RequirementEntity> requirements = plant.getRequirements();
-        requirements
-                .forEach(requirement -> {
-                    Optional<ParameterEntity> parameterOp = parameters.stream()
-                            .filter(parameter -> parameter.getName()
-                                    .equals(requirement.getName()))
-                            .findFirst();
-                });
-        return true;
-    }
-
 }

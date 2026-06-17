@@ -13,6 +13,11 @@ public class RequirementEntity {
     private String unit;
     private ParameterType type;
 
+    /** How this requirement is evaluated. Defaults to THRESHOLD for legacy rows. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RequirementKind kind = RequirementKind.THRESHOLD;
+
     @ManyToOne
     @JoinColumn(name = "plant_id")
     private Plant plant;
@@ -71,5 +76,13 @@ public class RequirementEntity {
 
     public void setType (ParameterType type) {
         this.type = type;
+    }
+
+    public RequirementKind getKind () {
+        return kind == null ? RequirementKind.THRESHOLD : kind;
+    }
+
+    public void setKind (RequirementKind kind) {
+        this.kind = kind;
     }
 }

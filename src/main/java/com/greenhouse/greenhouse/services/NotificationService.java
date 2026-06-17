@@ -55,7 +55,31 @@ public class NotificationService {
                 });
     }
 
+    /**
+     * Sends a push to every user that has a registered FCM token. Safe to call
+     * when Firebase is not configured or no users have tokens — it simply no-ops
+     * and never throws, so background callers (e.g. the plant-health scheduler)
+     * can fire-and-forget.
+     */
+    public void broadcast (String title, String body) {
+        if (firebaseMessaging == null) return; // Firebase not configured
+        userRepository.findAll().stream()
+                .map(u -> u.getFcmToken())
+                .filter(t -> t != null && !t.isBlank())
+                .forEach(token -> {
+                    try {
+                        sendNotification(title, body, List.of(token));
+                    } catch (Exception e) {
+                        System.err.println("[NOTIFY] Failed to push to a device: " + e.getMessage());
+                    }
+                });
+    }
+
     public void sendNotification (String title, String body, List<String> tokens) throws FirebaseMessagingException {
+        if (firebaseMessaging == null || tokens == null || tokens.isEmpty()) return;
+        String token = tokens.get(0);
+        if (token == null || token.isBlank()) return;
+
         Notification notification = Notification.builder()
                 .setTitle(title)
                 .setBody(body)
@@ -64,7 +88,7 @@ public class NotificationService {
 
         /// Dla jednego urządzenia
         Message message = Message.builder()
-                .setToken(tokens.get(0))
+                .setToken(token)
                 .setNotification(notification)
                 .build();
         firebaseMessaging.sendAsync(message);
